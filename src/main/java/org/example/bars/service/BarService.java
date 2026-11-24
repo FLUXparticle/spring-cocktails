@@ -32,10 +32,10 @@ public class BarService {
         return bar;
     }
 
+    @Transactional
     public Bar update(Bar input) {
-        // TODO: Aufgabe - Transaktionen: Historie und Bar gemeinsam in einer Transaktion speichern.
         String before = get(input.getId()).snapshot();
-        // Absichtlich zuerst: Ohne Transaktion bleibt dieser Eintrag bei einem Versionskonflikt stehen.
+        // Die Transaktion rollt diesen Eintrag zurück, wenn das Speichern der Bar scheitert.
         history.save(new BarHistory(input.getId(), "UPDATE", before + " → " + input.snapshot()));
         return bars.save(input);
     }
