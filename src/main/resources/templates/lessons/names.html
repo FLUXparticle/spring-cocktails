@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Namen</title>
+</head>
+<body>
+<form method="post" th:action="@{/lessons/names}" th:object="${form}">
+    <label>Name <input th:field="*{name}" required maxlength="100"></label>
+    <p th:errors="*{name}"></p>
+    <button>Hinzufügen</button>
+</form>
+<ul>
+    <li th:each="guest : ${names}" th:text="|Hallo, ${guest}!|"></li>
+</ul>
+</body>
+</html>
