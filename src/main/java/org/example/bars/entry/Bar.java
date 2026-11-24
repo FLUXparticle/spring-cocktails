@@ -10,6 +10,8 @@ public class Bar {
     private String name;
     private String email;
     private String address;
+    @Version
+    private Long version;
 
     public Bar() {
     }
@@ -52,7 +54,13 @@ public class Bar {
         this.address = address;
     }
 
+    public Long getVersion() {
+        return version;
+    }
 
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 
     public String snapshot() {
         return "Name: " + name + ", E-Mail: " + email + ", Adresse: " + address;
