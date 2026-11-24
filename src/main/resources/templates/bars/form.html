@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bar-Werkstatt</title>
+</head>
+
+<body>
+
+<h1 th:text="${barId == null ? 'Bar anlegen' : 'Bar bearbeiten'}">
+</h1>
+<form method="post" th:action="${barId == null} ? @{/bars} : @{/bars/{id}(id=${barId})}" th:object="${form}">
+<input type="hidden" th:field="*{version}">
+<p th:if="${barId != null}">Version: <span th:text="*{version}">
+</span>. Öffne diese Seite in zwei Tabs, um einen Bearbeitungskonflikt zu erzeugen.</p>
+<label>Name <input th:field="*{name}" maxlength="20" required>
+</label>
+<p th:errors="*{name}">
+</p>
+<label>E-Mail <input type="email" th:field="*{email}" required>
+</label>
+<p th:errors="*{email}">
+</p>
+<label>Adresse <textarea th:field="*{address}" maxlength="20">
+</textarea>
+</label>
+<p th:errors="*{address}">
+</p>
+<button>Speichern</button> <a th:href="@{/bars}">Abbrechen</a>
+</form>
+<form th:if="${barId != null}" method="post" th:action="@{/bars/{id}/delete(id=${barId})}">
+<input type="hidden" name="version" th:value="${form.version}">
+<button>Bar löschen</button>
+</form>
+
+</body>
+</html>

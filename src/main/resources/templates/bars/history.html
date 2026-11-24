@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bar-Werkstatt</title>
+</head>
+
+<body>
+
+<h1 th:text="|Historie für Bar ${barId}|">
+</h1>
+<p>Die Einträge bleiben auch nach dem Löschen einer Bar erhalten.</p>
+<table>
+<thead>
+<tr>
+<th>Zeitpunkt (UTC)</th>
+<th>Aktion</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="entry : ${history}">
+<td th:text="${entry.occurredAt}">
+</td>
+<td th:text="${entry.action}">
+</td>
+<td th:text="${entry.details}">
+</td>
+</tr>
+</tbody>
+</table>
+<a th:href="@{/bars}">Zur Liste</a>
+
+</body>
+</html>
