@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hallo</title>
+</head>
+<body>
+<h1 th:text="|Hallo, ${name}!|">Hallo, Welt!</h1>
+<form method="post" th:action="@{/lessons/hello/name}">
+    <label>Name <input name="name" th:value="${name}"></label>
+    <button>Begrüßen</button>
+</form>
+</body>
+</html>
