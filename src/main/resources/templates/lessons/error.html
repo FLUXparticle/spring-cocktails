@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Fehler</title>
+</head>
+<body>
+<form method="post" th:action="@{/lessons/error/top}">
+    <label>Oben <input name="top" th:value="${top}"></label>
+    <button>Oben senden</button>
+    <br>
+</form>
+<form method="post" th:action="@{/lessons/error/bottom}">
+    <label>Unten <input name="bottom" th:value="${bottom}"></label>
+    <button>Unten senden</button>
+</form>
+</body>
+</html>
