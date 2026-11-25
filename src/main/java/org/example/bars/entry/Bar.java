@@ -1,20 +1,14 @@
-package org.example.cocktails.bars.entry;
+package org.example.bars.entry;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 
 @Entity
 public class Bar {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank(message = "Name ist erforderlich.")
-    @Size(max = 20, message = "Maximal 20 Zeichen")
     private String name;
-    @NotBlank(message = "E-Mail ist erforderlich.")
-    @Email(message = "Bitte eine gültige E-Mail-Adresse eingeben.")
     private String email;
-    @Size(max = 20, message = "Maximal 20 Zeichen")
     private String address;
 
     public Bar() {

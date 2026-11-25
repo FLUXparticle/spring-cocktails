@@ -1,15 +1,14 @@
-package org.example.cocktails.bars.service;
+package org.example.bars.config;
 
-import org.example.cocktails.bars.entry.*;
-import org.example.cocktails.bars.repository.*;
+import org.example.bars.entry.*;
+import org.example.bars.repository.*;
+import org.example.bars.service.BarService;
 import org.springframework.boot.*;
-import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.context.annotation.*;
 
 @Configuration
 public class BarInitializer {
     @Bean
-    @ConditionalOnProperty(name = "bars.seed", havingValue = "true", matchIfMissing = true)
     ApplicationRunner seedBars(BarRepository repository, BarService service) {
         return args -> {
             if (repository.count() == 0) {

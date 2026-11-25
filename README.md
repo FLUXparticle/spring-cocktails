@@ -1,7 +1,7 @@
 # Spring – Tag 1
 
 Der erste Kurstag behandelt HTML-Formulare mit Spring MVC, Session-Zustand,
-Persistenz mit JPA und H2 sowie Paging, konkurrierende Bearbeitung und Transaktionen.
+Persistenz mit JPA und H2 sowie konkurrierende Bearbeitung und Transaktionen.
 Der Code verwendet Java 17 oder neuer und Spring Boot 4.2.0.
 
 ## Starten
@@ -19,20 +19,20 @@ SQLite, Cocktail-MVC, REST-Client und Security Lab gehören nicht zu diesem Stan
 
 ## Branches und Aufgaben
 
-`master` enthält genau einen `Initial Commit`: den vorbereiteten Aufgabenstand.
+`master` enthält den vorbereiteten Aufgabenstand und einen zusätzlichen Commit,
+der die Bar-Umgebung vereinfacht und in bestehende Lösungen gemergt werden kann.
 Die Bar-Grundfunktionen sind vorgegeben. Die Einstiegsaufgaben werden anhand der
 Vorlagen im Skript ergänzt. `solution` baut auf demselben Commit auf und stellt
-nacheinander diese sieben Lösungen her:
+nacheinander die Lösungen zu den folgenden Aufgaben her:
 
 | Schritt | Aufgabe | Ergebnis |
 | --- | --- | --- |
 | 1 | Greeting | GET `/lessons/hello`, Formular-POST an `/lessons/hello/name`, „Hallo, Name!“ |
 | 2 | Repeat | Eigene Demos für Repeat, Error, Echo und Swap |
 | 3 | Namensliste | Namen pro Browser-Session sammeln, validieren und nach POST umleiten |
-| 4 | Namen in Datenbank speichern | Session-Liste durch Entity und Spring-Data-Repository in H2 ersetzen |
-| 5 | Paging | Listenabfragen auf Repository-Methoden mit `Pageable` und `Page` umstellen |
-| 6 | Doppelte Bearbeitung erkennen | Versionsfeld mit `@Version`, Getter und Setter ergänzen |
-| 7 | Transaktionen | Den gesamten Batch mit `@Transactional("barsTransactionManager")` absichern und den Rollback testen |
+| 4 | Doppelte Bearbeitung erkennen | Versionsfeld mit `@Version`, Getter und Setter ergänzen |
+| 5 | Transaktionen | Bar und Historie mit `@Transactional` gemeinsam speichern und den Rollback testen |
+| 6 | Validierung | Feldregeln, Controller-Validierung und Formularmeldungen für Bars ergänzen |
 
 ### Textfelder
 
@@ -45,59 +45,66 @@ beide Buttons bleiben und senden an `/lessons/swap/both`.
 
 ### Namensliste
 
-Die erste Lösung hält eine Liste in einem `@SessionScope`-Bean. Zwei unabhängige
-Browser-Sitzungen haben unterschiedliche Listen. Danach ersetzt die JPA-Lösung
-unter derselben URL `/lessons/names` diese Liste durch gemeinsam gespeicherte Namen.
-H2 läuft weiterhin im Speicher: Die Daten überleben Requests und Sessions, aber
-keinen Neustart. Nach erfolgreichem Speichern verhindert POST/Redirect/GET ein
-versehentliches erneutes Hinzufügen beim Neuladen.
+Die Namensliste unter `/lessons/names` bleibt in einem `@SessionScope`-Bean.
+Zwei unabhängige Browser-Sitzungen haben unterschiedliche Listen. Eine Umstellung
+auf eine Datenbank ist nicht Teil der Aufgaben. Nach erfolgreichem Speichern
+verhindert POST/Redirect/GET ein versehentliches erneutes Hinzufügen beim Neuladen.
 
 ## Vorgegebene Bar-Umgebung
 
 Beim Start entstehen 26 Bars von „Bar A“ bis „Bar Z“, mit E-Mail-Adressen von
-`bar01@example.com` bis `bar26@example.com`. Anlegen, Bearbeiten, Löschen, Suche,
-Sortierung, Historie und die gemeinsame Adressänderung sind vorgegeben.
-Name und Adresse dürfen höchstens 20 Zeichen enthalten; Name und gültige E-Mail
-sind Pflichtfelder. Sortiert wird per GET-Link über Name, E-Mail oder Adresse.
+`bar01@example.com` bis `bar26@example.com`. Anlegen, Bearbeiten, Löschen, Suche
+und Historie sind vorgegeben.
+Die Suche durchsucht Name, E-Mail und Adresse. Validierung wird erst in der
+letzten Aufgabe ergänzt; der Aufgabenstand enthält noch keine Feldprüfungen.
 
-Vor der Paging-Lösung werden alle passenden Bars angezeigt. Danach sind es zehn
-pro Seite; „Zurück“ und „Weiter“ bleiben an den Seitengrenzen als Text ohne Link
-stehen. Die gemeinsame Adressänderung betrifft stets alle Bars, unabhängig von
-Suche oder aktueller Seite.
+Alle passenden Bars werden in einer Liste angezeigt.
 
 ### Doppelte Bearbeitung vorführen
 
 Eine Bar in zwei Tabs öffnen. Im ersten Tab ändern und speichern, danach im zweiten
 Tab veraltete Daten speichern. Ohne Versionsfeld überschreibt die zweite Änderung
 die erste unbemerkt. Nach Ergänzen von `@Version` wird ein Konflikt erkannt. Die
-vorgegebene Umgebung (`BarVersions`, Formulare und Konfliktseite) funktioniert mit
+vorgegebene Umgebung (`BarVersions` und Formulare) funktioniert mit
 und ohne Versionsfeld und gehört nicht zur eigentlichen Aufgabe.
 
 ### Fehlende Transaktion vorführen
 
-Zuerst die Liste laden, dann z. B. Bar Z in einem zweiten Tab ändern. Anschließend
-im ersten Tab die Adresse aller Bars ändern. Nach der Versionsaufgabe entsteht ein
-Konflikt; ohne Batch-Transaktion bleiben vorherige Änderungen samt Historie bereits
-gespeichert. Mit `@Transactional("barsTransactionManager")` an `bulkUpdate` wird
-der gesamte Batch zurückgerollt. Die unabhängig gespeicherte Änderung an Bar Z
-bleibt bestehen. Der zugehörige Teilnehmer-Test liegt in der letzten Lösung.
+Nach der Versionsaufgabe eine Bar in zwei Tabs öffnen. Im ersten Tab ändern und
+speichern, anschließend im zweiten Tab veraltete Daten speichern. `update` speichert
+absichtlich zuerst den Historieneintrag und danach die Bar. Die zweite Speicherung
+scheitert am Versionskonflikt. Ohne gemeinsame Transaktion bleibt dadurch ein
+Historieneintrag für eine Änderung stehen, die nie gespeichert wurde.
+
+Die Aufgabe besteht darin, `update` mit `@Transactional` zu versehen. Dann wird
+auch der Historieneintrag zurückgerollt. Die erfolgreiche Änderung aus dem ersten
+Tab bleibt bestehen. Der Teilnehmer-Test soll genau diesen Zusammenhang prüfen.
 
 ## Vorgegebene Konfiguration
 
-`CocktailWebApplication` liegt im Basispaket `org.example.cocktails` und startet
-alle Komponenten. Die Pakete `lessons` und `bars` gliedern die Schulungsphasen;
-Controller, Services, Repositories und Datenklassen (`entry`) liegen darunter.
+`BarsApplication` liegt im Basispaket `org.example.bars`. Spring Boot findet dort
+Controller, Services, Entities und Repositories automatisch und konfiguriert JPA
+samt TransactionManager. Eine eigene Persistence-Konfiguration ist nicht nötig;
+für eine Transaktion genügt `@Transactional`.
 
-`PersistenceConfiguration` stellt die H2-Datenquelle, die JPA-Persistence-Unit
-`bars` und `barsTransactionManager` bereit. `BarConfiguration` ordnet die
-Bar-Repositories dieser Datenbank zu. Mit der Datenbank-Aufgabe kommt die analoge
-`LessonConfiguration` für die Namensliste hinzu. Diese Konfigurationen sind
-vorgegeben und werden im Skript erklärt. Es gibt genau eine Datenbank, ausschließlich
-im Speicher. Mit `--bars.seed=false` lassen sich die Beispielbars abschalten.
+`DatabaseConfiguration` im Paket `org.example.bars.config` stellt die H2-Datenquelle als `DataSource`-Bean
+bereit. Die Datenbank läuft ausschließlich im Speicher. Beim direkten Start von
+`BarsApplication` ist damit bereits die richtige Datenbank gewählt; Profile oder
+Startparameter sind nicht erforderlich. EntityManagerFactory und TransactionManager
+konfiguriert Spring Boot weiterhin automatisch.
+Die Beispielbars werden beim Start automatisch angelegt, sofern die Tabelle leer ist.
 
-Die vorhandene E-Mail-Simulation protokolliert nach erfolgreichen Änderungen nur
-eine Nachricht; sie versendet keine echten E-Mails. `--bars.email.delay-ms=0`
-überspringt ihre Wartezeit. Sie ist Teil der vorgegebenen Bar-Umgebung.
+`CocktailWebApplication` bleibt unter `org.example.cocktails` und startet einen
+eigenen Anwendungskontext. Die beiden Anwendungen scannen ausschließlich ihr
+jeweiliges Basispaket. Der spätere Cocktail-Teil kann so seine SQLite-Datenbank
+verwenden, ohne die JPA-Konfiguration der Bars zu beeinflussen. Die Anwendungen
+werden einzeln gestartet; für gleichzeitigen Betrieb benötigen sie unterschiedliche
+HTTP-Ports, etwa `--server.port=8081` für die zweite Anwendung.
+
+Maven und das ausführbare JAR starten standardmäßig `BarsApplication`. In der IDE
+kann die gewünschte Application direkt gestartet werden. Bei Teilnehmer-Tests
+liegen die Klassen ebenfalls unter `org.example.bars`, damit `@SpringBootTest`
+die richtige Application automatisch findet.
 
 ## Prüfen
 
@@ -107,5 +114,42 @@ mvn verify
 mvn -Dtest=BarTransactionTest test
 ```
 
-Im Initialstand gibt es noch keine Teilnehmer-Tests. Der Lösungsbranch ergänzt den
-Test, der den vollständigen Rollback des Batches einschließlich Historie prüft.
+Im Initialstand gibt es noch keine Teilnehmer-Tests. Der Lösungsbranch ergänzt
+`BarTransactionTest`: Ein veraltetes Update scheitert am Versionskonflikt; sowohl
+der Datenstand der Bar als auch die Anzahl der Historieneinträge bleiben unverändert.
+
+## Vereinfachung der Bar-Umgebung
+
+Gespeichert wird mit `save`, ohne explizites `flush`. Beim Bearbeiten geht die
+Entity mit der im Formular mitgesendeten Version an das Repository. JPA übernimmt
+die Versionsprüfung; der Anwendungscode vergleicht keine Versionsnummern.
+Beim Löschen wird die Bar geladen und mit `delete` entfernt. Die Version aus
+dem geöffneten Formular wird dabei nicht geprüft; die Demonstration veralteter
+Formulardaten findet beim Bearbeiten statt.
+`BarVersions` überträgt die optionale Version lediglich, damit
+der Aufgabenstand auch ohne Versionsfeld läuft.
+
+Ein Versionskonflikt löst eine `OptimisticLockingFailureException` aus und wird
+über die Standard-Fehlerseite von Spring angezeigt. Eine eigene Fehlerbehandlung,
+die Zusammenführungsoberfläche und die asynchrone E-Mail-Simulation entfallen.
+Die Historie bleibt erhalten, um den Rollback einer Transaktion sichtbar zu machen.
+
+Die Lösungen auf `solution` bauen auf dem vereinfachten Aufgabenstand auf.
+Die Transaktionsaufgabe ergänzt `@Transactional` an `update` und den zugehörigen
+Rollback-Test. Die Paging-Aufgabe entfällt.
+
+Die Einstiegsaufgaben liegen unter `org.example.cocktails.lessons` und werden mit
+`CocktailWebApplication` gestartet. Die Namensliste verwendet ausschließlich die
+Session. Bars und Namensliste verwenden getrennte Anwendungskontexte.
+
+Konfigurationsklassen liegen im jeweiligen `config`-Paket, Advice-Klassen im
+`advice`-Paket, sofern solche Klassen benötigt werden.
+
+### Aufgabe: Validierung
+
+Zum Schluss werden die Bar-Formulare validiert: Name ist erforderlich und höchstens
+20 Zeichen lang, E-Mail ist erforderlich und gültig, Adresse höchstens 20 Zeichen.
+Die Aufgabe ergänzt Bean-Validation-Constraints an `BarForm` und `Bar`, `@Valid`
+und `BindingResult` im Controller sowie Fehlermeldungen und Browser-Prüfungen im
+HTML. Bei Fehlern bleiben die Eingaben im Formular erhalten; gespeichert wird erst
+bei gültigen Daten. Im Service gibt es keine zusätzliche Methodenvalidierung.

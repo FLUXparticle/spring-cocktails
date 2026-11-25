@@ -1,4 +1,4 @@
-package org.example.cocktails.bars.entry;
+package org.example.bars.entry;
 
 import jakarta.persistence.*;
 

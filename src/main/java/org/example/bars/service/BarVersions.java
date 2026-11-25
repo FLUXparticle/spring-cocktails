@@ -1,6 +1,6 @@
-package org.example.cocktails.bars.service;
+package org.example.bars.service;
 
-import org.example.cocktails.bars.entry.*;
+import org.example.bars.entry.*;
 import org.springframework.beans.*;
 import org.springframework.stereotype.*;
 

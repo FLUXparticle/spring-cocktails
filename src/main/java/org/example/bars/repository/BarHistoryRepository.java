@@ -1,6 +1,6 @@
-package org.example.cocktails.bars.repository;
+package org.example.bars.repository;
 
-import org.example.cocktails.bars.entry.*;
+import org.example.bars.entry.*;
 import org.springframework.data.jpa.repository.*;
 
 import java.util.*;

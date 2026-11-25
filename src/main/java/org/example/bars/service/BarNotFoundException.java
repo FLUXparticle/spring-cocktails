@@ -1,4 +1,4 @@
-package org.example.cocktails.bars.service;
+package org.example.bars.service;
 
 public class BarNotFoundException extends RuntimeException {
     public BarNotFoundException(Long id) {

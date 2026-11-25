@@ -14,23 +14,16 @@
 <input type="hidden" th:field="*{version}">
 <p th:if="${barId != null}">Version: <span th:text="*{version}">
 </span>. Öffne diese Seite in zwei Tabs, um einen Bearbeitungskonflikt zu erzeugen.</p>
-<label>Name <input th:field="*{name}" maxlength="20" required>
+<label>Name <input th:field="*{name}">
 </label>
-<p th:errors="*{name}">
-</p>
-<label>E-Mail <input type="email" th:field="*{email}" required>
+<label>E-Mail <input th:field="*{email}">
 </label>
-<p th:errors="*{email}">
-</p>
-<label>Adresse <textarea th:field="*{address}" maxlength="20">
+<label>Adresse <textarea th:field="*{address}">
 </textarea>
 </label>
-<p th:errors="*{address}">
-</p>
 <button>Speichern</button> <a th:href="@{/bars}">Abbrechen</a>
 </form>
 <form th:if="${barId != null}" method="post" th:action="@{/bars/{id}/delete(id=${barId})}">
-<input type="hidden" name="version" th:value="${form.version}">
 <button>Bar löschen</button>
 </form>
 

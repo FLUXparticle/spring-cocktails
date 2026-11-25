@@ -14,40 +14,27 @@
 </p>
 <a th:href="@{/bars/new}">Neue Bar</a>
 <form method="get" th:action="@{/bars}">
-<input type="hidden" name="sortField" th:value="${sortField}">
-<input type="hidden" name="sortDirection" th:value="${sortDirection}">
 <label>Suche <input name="search" th:value="${search}">
 </label>
 <button>Suchen</button>
 </form>
 <p>
-<strong th:text="${page.total}">
+<strong th:text="${#lists.size(bars)}">
 </strong> Treffer
 </p>
-<form method="post" th:action="@{/bars/bulk}" th:object="${bulk}">
-<div th:if="${#fields.hasAnyErrors()}">
-<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
-</p>
-</div>
 <table>
 <thead>
 <tr>
 <th>ID</th>
 <th>Version</th>
-<th>
-<a th:href="@{/bars(search=${search},sortField='name',sortDirection=${sortActive and sortField == 'name' and sortDirection == 'ASC' ? 'DESC' : 'ASC'})}">Name</a>
-</th>
-<th>
-<a th:href="@{/bars(search=${search},sortField='email',sortDirection=${sortActive and sortField == 'email' and sortDirection == 'ASC' ? 'DESC' : 'ASC'})}">E-Mail</a>
-</th>
-<th>
-<a th:href="@{/bars(search=${search},sortField='address',sortDirection=${sortActive and sortField == 'address' and sortDirection == 'ASC' ? 'DESC' : 'ASC'})}">Adresse</a>
-</th>
+<th>Name</th>
+<th>E-Mail</th>
+<th>Adresse</th>
 <th>Aktionen</th>
 </tr>
 </thead>
 <tbody>
-<tr th:each="bar : ${page.bars}">
+<tr th:each="bar : ${bars}">
 
 <td th:text="${bar.id}">
 </td>
@@ -65,17 +52,6 @@
 </tr>
 </tbody>
 </table>
-<!-- TODO: Aufgabe - Paging: Zurück und Weiter als GET-Links ergänzen; an Seitengrenzen als Text stehen lassen. -->
-<fieldset>
-<legend>Gemeinsame Änderung aller Bars</legend>
-<input th:each="entry : ${bulk.versions}" type="hidden" th:name="|versions[${entry.key}]|" th:value="${entry.value}">
-<label>Neue Adresse <input th:field="*{address}" maxlength="20">
-</label>
-<button>Alle Bars ändern</button>
-<p>Experiment: Liste laden, eine Bar in einem zweiten Tab ändern, dann hier alle Bars ändern. Anschließend die gespeicherten Daten und die Historie prüfen.</p>
-</fieldset>
-</form>
-
 
 </body>
 </html>
