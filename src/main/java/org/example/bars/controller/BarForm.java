@@ -1,5 +1,6 @@
 package org.example.bars.controller;
 
+import jakarta.validation.constraints.*;
 import org.example.bars.entry.*;
 import org.example.bars.service.*;
 
@@ -7,8 +8,13 @@ import org.example.bars.service.*;
  * Only the fields that may be submitted by an editor are bound.
  */
 public class BarForm {
+    @NotBlank(message = "Name ist erforderlich.")
+    @Size(max = 20, message = "Maximal 20 Zeichen")
     private String name;
+    @NotBlank(message = "E-Mail ist erforderlich.")
+    @Email(message = "Bitte eine gültige E-Mail-Adresse eingeben.")
     private String email;
+    @Size(max = 20, message = "Maximal 20 Zeichen")
     private String address;
     private Long version;
 

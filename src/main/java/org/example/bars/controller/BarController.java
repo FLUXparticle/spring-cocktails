@@ -1,8 +1,10 @@
 package org.example.bars.controller;
 
+import jakarta.validation.*;
 import org.example.bars.service.*;
 import org.springframework.stereotype.*;
 import org.springframework.ui.*;
+import org.springframework.validation.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.*;
 
@@ -31,7 +33,8 @@ public class BarController {
     }
 
     @PostMapping
-    public String create(@ModelAttribute("form") BarForm form, RedirectAttributes redirect) {
+    public String create(@Valid @ModelAttribute("form") BarForm form, BindingResult errors, RedirectAttributes redirect) {
+        if (errors.hasErrors()) return "bars/form";
         service.create(form.toBar(null));
         redirect.addFlashAttribute("message", "Bar angelegt.");
         return "redirect:/bars";
@@ -45,9 +48,10 @@ public class BarController {
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute("form") BarForm form,
+    public String update(@PathVariable Long id, @Valid @ModelAttribute("form") BarForm form, BindingResult errors,
                          Model model, RedirectAttributes redirect) {
         model.addAttribute("barId", id);
+        if (errors.hasErrors()) return "bars/form";
         service.update(form.toBar(id));
         redirect.addFlashAttribute("message", "Bar gespeichert.");
         return "redirect:/bars";
