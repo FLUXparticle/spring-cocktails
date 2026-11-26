@@ -2,18 +2,28 @@ package org.example.cocktails.recipes.repository;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FridgeStore {
     private final Set<Long> stock = new HashSet<>();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public Set<Long> ingredients() {
-        // TODO: Aufgabe - Kühlschrank synchronisieren: Lesen und Snapshot-Erstellung mit einem Leselock schützen.
-        return Set.copyOf(stock);
+        lock.readLock().lock();
+        try {
+            return Set.copyOf(stock);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     public void setIngredient(Long id, boolean present) {
-        // TODO: Aufgabe - Kühlschrank synchronisieren: Änderungen mit einem Schreiblock schützen.
-        if (present) stock.add(id);
-        else stock.remove(id);
+        lock.writeLock().lock();
+        try {
+            if (present) stock.add(id);
+            else stock.remove(id);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 }
