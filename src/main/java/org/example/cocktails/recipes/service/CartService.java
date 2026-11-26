@@ -6,6 +6,8 @@ import org.springframework.stereotype.*;
 import org.springframework.web.context.annotation.*;
 
 import java.util.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @SessionScope
@@ -20,13 +22,13 @@ public class CartService {
     }
 
     public synchronized void addCocktail(Long id) {
-        // TODO: Aufgabe - Warenkorb: Das Rezept laden und seine Zutaten-IDs im Session-Warenkorb sammeln.
-        throw new UnsupportedOperationException("Aufgabe - Warenkorb");
+        var cocktail = cocktails.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cocktail nicht gefunden."));
+        cocktail.getInstructions().forEach(i -> ingredientIds.add(i.getIngredient().getId()));
     }
 
     public synchronized void removeIngredient(Long id) {
-        // TODO: Aufgabe - Warenkorb: Die Zutaten-ID prüfen und aus dem Session-Warenkorb entfernen.
-        throw new UnsupportedOperationException("Aufgabe - Warenkorb");
+        ingredients.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zutat nicht gefunden."));
+        ingredientIds.remove(id);
     }
 
     public synchronized void clear() {
@@ -34,7 +36,9 @@ public class CartService {
     }
 
     public synchronized CartView getCart() {
-        // TODO: Aufgabe - Warenkorb: Den aktuellen Warenkorbinhalt und die Cocktail-Auswahl zusammenstellen.
-        throw new UnsupportedOperationException("Aufgabe - Warenkorb");
+        var stock = ingredients.findAll().stream().filter(i -> ingredientIds.contains(i.getId()))
+                .map(i -> new IngredientView(i.getId(), i.getName())).sorted(Comparator.comparing(IngredientView::name)).toList();
+        var recipes = cocktails.findAll().stream().map(c -> new CocktailSummary(c.getId(), c.getName())).sorted(Comparator.comparing(CocktailSummary::name)).toList();
+        return new CartView(stock, recipes);
     }
 }

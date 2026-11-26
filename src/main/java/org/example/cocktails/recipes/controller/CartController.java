@@ -16,20 +16,22 @@ public class CartController {
 
     @GetMapping
     public String view(Model model) {
-        // TODO: Aufgabe - Warenkorb: Warenkorb und verfügbare Cocktails ins Model übernehmen und die Seite anzeigen.
-        throw new UnsupportedOperationException("Aufgabe - Warenkorb");
+        var view = cart.getCart();
+        model.addAttribute("ingredients", view.ingredients());
+        model.addAttribute("cocktails", view.cocktails());
+        return "cart";
     }
 
     @PostMapping("/actions/add-cocktail")
     public String add(@RequestParam Long cocktailId) {
-        // TODO: Aufgabe - Warenkorb: Die Zutaten des gewählten Cocktails hinzufügen und anschließend zurückleiten.
-        throw new UnsupportedOperationException("Aufgabe - Warenkorb");
+        cart.addCocktail(cocktailId);
+        return "redirect:/mvc/cart";
     }
 
     @PostMapping("/items/{id}/remove")
     public String remove(@PathVariable Long id) {
-        // TODO: Aufgabe - Warenkorb: Die gewählte Zutat entfernen und anschließend zurückleiten.
-        throw new UnsupportedOperationException("Aufgabe - Warenkorb");
+        cart.removeIngredient(id);
+        return "redirect:/mvc/cart";
     }
 
     @PostMapping("/clear")

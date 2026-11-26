@@ -288,7 +288,21 @@ in `CartController` und `CartService` stammen aus `dev`:
 
 Das Leeren des Warenkorbs ist als einfaches Beispiel bereits implementiert – im
 Service mit `ingredientIds.clear()`, im Controller mit anschließendem Redirect.
-Alle übrigen Aufgabenmethoden sind noch TODOs. Nach der Implementierung lässt
-sich die Session-Trennung mit zwei unabhängigen Browser-Sitzungen beobachten.
+Auf `master` bleiben die übrigen Aufgabenmethoden als TODOs stehen. Auf `solution`
+sind sie implementiert. Die Session-Trennung lässt sich mit zwei unabhängigen
+Browser-Sitzungen beobachten.
 Es wird kein REST-Warenkorb vorbereitet; JWT und JavaScript-Client sind spätere
 Themen.
+
+## MVC-Lösungen auf solution
+
+Die Lösungen sind in fünf Aufgabencommits aufgeteilt: Cocktails, Zutaten,
+Kühlschrank, Kühlschrank synchronisieren und Warenkorb. Die Controller füllen
+die vorhandenen Templates; die Services verwenden den SQLite-Katalog. Die
+Namenssuche berücksichtigt auch Zutaten und vermeidet doppelte Cocktail-Treffer.
+
+Der Kühlschrank verwendet weiterhin die vorgegebene Map und `getCurrentFridge()`.
+Sein Bestand ist je Benutzer getrennt. Der Warenkorb ist dagegen je Session
+getrennt und ohne Login nutzbar. Die Lese- und Schreiblocks im `FridgeStore`
+sichern gleichzeitige Zugriffe auf den Zutatenbestand ab. Die bisherigen Milk-
+und Bars-Lösungen bleiben erhalten.
