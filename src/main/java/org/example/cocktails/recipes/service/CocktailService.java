@@ -39,13 +39,14 @@ public class CocktailService {
     }
 
     public List<IngredientView> ingredients() {
-        // TODO: Aufgabe - Zutaten: Die Zutatenliste laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Zutaten");
+        return ingredients.findAll().stream().map(i -> new IngredientView(i.getId(), i.getName())).sorted(Comparator.comparing(IngredientView::name)).toList();
     }
 
     public IngredientDetail ingredient(Long id) {
-        // TODO: Aufgabe - Zutaten: Eine Zutat mit den zugehörigen Cocktails laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Zutaten");
+        var ingredient = ingredients.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zutat nicht gefunden."));
+        var recipes = repository.findDistinctByInstructionsIngredientId(id).stream()
+                .map(c -> new CocktailSummary(c.getId(), c.getName())).sorted(Comparator.comparing(CocktailSummary::name)).toList();
+        return new IngredientDetail(ingredient.getId(), ingredient.getName(), recipes);
     }
 
     public List<CocktailSummary> search(String query) {

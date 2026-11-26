@@ -49,14 +49,18 @@ public class CocktailController {
 
     @GetMapping("/ingredients")
     public String ingredients(Model model) {
-        // TODO: Aufgabe - Zutaten: Die Zutatenliste laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Zutaten");
+        var ingredients = cocktailService.ingredients();
+        model.addAttribute("ingredients", ingredients);
+        return "ingredients";
     }
 
     @GetMapping("/ingredients/{id}")
     public String ingredient(@PathVariable Long id, Model model) {
-        // TODO: Aufgabe - Zutaten: Eine Zutat mit den zugehörigen Cocktails laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Zutaten");
+        var ingredient = cocktailService.ingredient(id);
+        var cocktails = ingredient.cocktails();
+        model.addAttribute("name", ingredient.name());
+        model.addAttribute("cocktails", cocktails);
+        return "ingredient";
     }
 
 }
