@@ -15,7 +15,7 @@ java -jar target/spring-cocktails-1.0-SNAPSHOT.jar
 
 Startseite: <http://localhost:8080/>. Die Bar-Tabelle liegt unter `/bars`.
 Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Anmeldung, externe APIs,
-SQLite, Cocktail-MVC, REST-Client und Security Lab gehören nicht zu diesem Stand.
+SQLite, Cocktail-MVC, REST-Oberfläche und Security Lab gehören nicht zu diesem Stand.
 
 ## Branches und Aufgaben
 
@@ -183,3 +183,36 @@ veraltete Formular absenden. Die Änderung scheitert am Versionskonflikt; weder
 ein zusätzlicher Historieneintrag noch ein Versand dürfen entstehen. Bei einem
 Rollback nach Ereignisveröffentlichung wird der Listener ebenfalls nicht ausgeführt.
 Die Wartezeit steht direkt in der Listener-Methode: `Thread.sleep(2000)`.
+
+## Milk-Aufgabe
+
+`MilkServiceTest` startet den Spring-Kontext mit dem Profil `test`, injiziert
+`MilkService` und prüft in beiden Varianten die Milchmenge `38` cl. Ein Webserver
+wird nicht gestartet. Ausführen mit:
+
+```sh
+mvn -Dtest=MilkServiceTest test
+```
+
+Die Tests sind bereits vollständig. Auf `master` scheitern sie absichtlich an den
+TODOs in `MilkService`, `CocktailService` und `RemoteCocktailRepository`.
+Aufgabe der Teilnehmer ist es, diese Methoden zu implementieren. Alle anderen
+Dateien sind vorgegeben. Die Zeitmessung dient nur der Sichtprüfung, es gibt
+keine Zeit-Assertions.
+
+Die Datenklassen und die Schnittstelle `CocktailRepository` stammen aus `freeze`.
+Außerhalb des Profils `test` ist sie ein Spring-Data-JPA-Repository. Im Profil
+`test` wird stattdessen `RemoteCocktailRepository` verwendet. Die vorgegebene
+`recipes.config.RemoteConfiguration` stellt ausschließlich in diesem Profil
+einen WebClient für `https://cocktails.fluxparticle.com` bereit.
+
+Zuerst werden Cocktails mit "Milk" im Namen gesucht und deren Details nacheinander
+abgerufen. Anschließend werden dieselben Detailabfragen parallel über
+`CocktailService.findByIdAsync` gestartet. `@EnableAsync` steht bereits an
+`CocktailWebApplication`; die Teilnehmer ergänzen `@Async` an der Service-Methode.
+Der Aufruf aus `MilkService` geht durch den Spring-Proxy. Erst alle Abfragen
+starten, danach die Futures abwarten und die Mengen der Zutat "Milch" summieren.
+Die Repository-Aufrufe sind synchron (`WebClient` mit `block()`); die
+Parallelisierung übernimmt Spring mit `@Async`. Erwartete Laufzeiten sind grob
+vier beziehungsweise zwei Sekunden und hängen vom Remote-Server ab.
+Eine Aufgabe zu Fehlerabbruch oder strukturierter Nebenläufigkeit gibt es nicht.
