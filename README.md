@@ -33,6 +33,7 @@ nacheinander die Lösungen zu den folgenden Aufgaben her:
 | 4 | Doppelte Bearbeitung erkennen | Versionsfeld mit `@Version`, Getter und Setter ergänzen |
 | 5 | Transaktionen | Bar und Historie mit `@Transactional` gemeinsam speichern und den Rollback testen |
 | 6 | Validierung | Feldregeln, Controller-Validierung und Formularmeldungen für Bars ergänzen |
+| 7 | Asynchrone Verarbeitung | E-Mail-Simulation mit `@Async` erst nach erfolgreichem Commit ausführen |
 
 ### Textfelder
 
@@ -55,8 +56,8 @@ verhindert POST/Redirect/GET ein versehentliches erneutes Hinzufügen beim Neula
 Beim Start entstehen 26 Bars von „Bar A“ bis „Bar Z“, mit E-Mail-Adressen von
 `bar01@example.com` bis `bar26@example.com`. Anlegen, Bearbeiten, Löschen, Suche
 und Historie sind vorgegeben.
-Die Suche durchsucht Name, E-Mail und Adresse. Validierung wird erst in der
-letzten Aufgabe ergänzt; der Aufgabenstand enthält noch keine Feldprüfungen.
+Die Suche durchsucht Name, E-Mail und Adresse. Validierung wird in einer eigenen
+Aufgabe ergänzt; der Aufgabenstand enthält noch keine Feldprüfungen.
 
 Alle passenden Bars werden in einer Liste angezeigt.
 
@@ -130,8 +131,8 @@ Formulardaten findet beim Bearbeiten statt.
 der Aufgabenstand auch ohne Versionsfeld läuft.
 
 Ein Versionskonflikt löst eine `OptimisticLockingFailureException` aus und wird
-über die Standard-Fehlerseite von Spring angezeigt. Eine eigene Fehlerbehandlung,
-die Zusammenführungsoberfläche und die asynchrone E-Mail-Simulation entfallen.
+über die Standard-Fehlerseite von Spring angezeigt. Eine eigene Fehlerbehandlung und die Zusammenführungsoberfläche entfallen.
+Die asynchrone E-Mail-Simulation wird in einer eigenen Aufgabe ergänzt.
 Die Historie bleibt erhalten, um den Rollback einer Transaktion sichtbar zu machen.
 
 Die Lösungen auf `solution` bauen auf dem vereinfachten Aufgabenstand auf.
@@ -147,9 +148,38 @@ Konfigurationsklassen liegen im jeweiligen `config`-Paket, Advice-Klassen im
 
 ### Aufgabe: Validierung
 
-Zum Schluss werden die Bar-Formulare validiert: Name ist erforderlich und höchstens
+In dieser Aufgabe werden die Bar-Formulare validiert: Name ist erforderlich und höchstens
 20 Zeichen lang, E-Mail ist erforderlich und gültig, Adresse höchstens 20 Zeichen.
 Die Aufgabe ergänzt Bean-Validation-Constraints an `BarForm` und `Bar`, `@Valid`
 und `BindingResult` im Controller sowie Fehlermeldungen und Browser-Prüfungen im
 HTML. Bei Fehlern bleiben die Eingaben im Formular erhalten; gespeichert wird erst
 bei gültigen Daten. Im Service gibt es keine zusätzliche Methodenvalidierung.
+
+### Aufgabe: Asynchrone Verarbeitung
+
+Eine erfolgreiche Bar-Änderung soll eine E-Mail-Simulation auslösen. Es werden
+keine echten E-Mails versendet, sondern nach zwei Sekunden nur eine Nachricht
+protokolliert. Der HTTP-Request soll nicht auf diese Wartezeit warten.
+
+1. An `org.example.bars.BarsApplication` mit `@EnableAsync` die
+   asynchrone Verarbeitung aktivieren.
+2. Das Ereignis `BarChanged` mit Bar-ID und E-Mail-Adresse als Record anlegen.
+3. In `BarService` einen `ApplicationEventPublisher` injizieren und in `update`
+   nach `save` das Ereignis mit `events.publishEvent(...)` veröffentlichen.
+4. In `BarEmailService` eine Listener-Methode mit `@Async` und
+   `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` schreiben.
+   Die Simulation wartet mit `Thread.sleep(2000)` und protokolliert ID und E-Mail-Adresse.
+
+`@Async` liegt in `org.springframework.scheduling.annotation`,
+`@TransactionalEventListener` und `TransactionPhase` liegen in
+`org.springframework.transaction.event`. Der Listener wird erst nach einem
+Commit aufgerufen und arbeitet auf einem anderen Thread. Die Transaktion aus
+der vorherigen Aufgabe bleibt dafür an `update` erhalten. Eine zusätzliche
+JPA-Konfiguration oder ein eigener TransactionManager ist nicht erforderlich.
+
+Zur Sichtprüfung eine Bar in zwei Tabs öffnen: Die erste Änderung speichern und
+die verzögerte Logausgabe auf einem anderen Thread beobachten. Anschließend das
+veraltete Formular absenden. Die Änderung scheitert am Versionskonflikt; weder
+ein zusätzlicher Historieneintrag noch ein Versand dürfen entstehen. Bei einem
+Rollback nach Ereignisveröffentlichung wird der Listener ebenfalls nicht ausgeführt.
+Die Wartezeit steht direkt in der Listener-Methode: `Thread.sleep(2000)`.

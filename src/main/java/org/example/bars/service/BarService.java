@@ -2,6 +2,7 @@ package org.example.bars.service;
 
 import org.example.bars.entry.*;
 import org.example.bars.repository.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
@@ -11,10 +12,12 @@ import java.util.*;
 public class BarService {
     private final BarRepository bars;
     private final BarHistoryRepository history;
+    private final ApplicationEventPublisher events;
 
-    public BarService(BarRepository bars, BarHistoryRepository history) {
+    public BarService(BarRepository bars, BarHistoryRepository history, ApplicationEventPublisher events) {
         this.bars = bars;
         this.history = history;
+        this.events = events;
     }
 
     public Bar get(Long id) {
@@ -37,7 +40,9 @@ public class BarService {
         String before = get(input.getId()).snapshot();
         // Die Transaktion rollt diesen Eintrag zurück, wenn das Speichern der Bar scheitert.
         history.save(new BarHistory(input.getId(), "UPDATE", before + " → " + input.snapshot()));
-        return bars.save(input);
+        Bar saved = bars.save(input);
+        events.publishEvent(new BarChanged(saved.getId(), saved.getEmail()));
+        return saved;
     }
 
     @Transactional
