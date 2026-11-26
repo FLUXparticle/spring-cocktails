@@ -15,7 +15,8 @@ java -jar target/spring-cocktails-1.0-SNAPSHOT.jar
 
 Startseite: <http://localhost:8080/>. Die Bar-Tabelle liegt unter `/bars`.
 Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Anmeldung, externe APIs,
-SQLite, Cocktail-MVC, REST-Oberfläche und Security Lab gehören nicht zu diesem Stand.
+Der Cocktail-MVC-Teil und der SQLite-Katalog sind als Aufgaben vorbereitet.
+REST-Oberfläche und Security Lab gehören nicht zu diesem Stand.
 
 ## Branches und Aufgaben
 
@@ -96,8 +97,8 @@ Die Beispielbars werden beim Start automatisch angelegt, sofern die Tabelle leer
 
 `CocktailWebApplication` bleibt unter `org.example.cocktails` und startet einen
 eigenen Anwendungskontext. Die beiden Anwendungen scannen ausschließlich ihr
-jeweiliges Basispaket. Der spätere Cocktail-Teil kann so seine SQLite-Datenbank
-verwenden, ohne die JPA-Konfiguration der Bars zu beeinflussen. Die Anwendungen
+jeweiliges Basispaket. Der Cocktail-Teil verwendet seine SQLite-Datenbank,
+ohne die JPA-Konfiguration der Bars zu beeinflussen. Die Anwendungen
 werden einzeln gestartet; für gleichzeitigen Betrieb benötigen sie unterschiedliche
 HTTP-Ports, etwa `--server.port=8081` für die zweite Anwendung.
 
@@ -186,3 +187,72 @@ Die Repository-Aufrufe sind synchron (`WebClient` mit `block()`); die
 Parallelisierung übernimmt Spring mit `@Async`. Erwartete Laufzeiten sind grob
 vier beziehungsweise zwei Sekunden und hängen vom Remote-Server ab.
 Eine Aufgabe zu Fehlerabbruch oder strukturierter Nebenläufigkeit gibt es nicht.
+
+## MVC-Aufgaben: Cocktails, Zutaten und Kühlschrank
+
+`CocktailWebApplication` direkt starten und `/mvc` öffnen. Hierfür sind keine
+Profile oder Startparameter nötig. `org.example.cocktails.config.DatabaseConfiguration`
+stellt den unveränderten SQLite-Katalog aus `freeze` bereit; JPA liest die bestehenden
+Tabellen, ohne sie zu erzeugen oder zu verändern. Bars bleibt eine eigene Application
+mit H2 im Speicher.
+
+Die HTML-Seiten und Repository-Schnittstellen sind vorgegeben. Die Methoden in
+`CocktailController`, `UserController`, `CocktailService` und `FridgeService`
+enthalten die Aufgaben-TODOs aus `dev`:
+
+- **Cocktails:** Liste, Rezeptdetails und Suche über Cocktail- und Zutatennamen.
+- **Zutaten:** Liste und Details mit den zugehörigen Cocktails.
+- **Kühlschrank:** Zutatenbestand des angemeldeten Benutzers anzeigen und ändern;
+  die mit diesem Bestand möglichen Cocktails bestimmen.
+- **Kühlschrank synchronisieren:** In `FridgeStore` Lesen inklusive Snapshot und
+  Schreiben mit einem `ReentrantReadWriteLock` schützen.
+
+`SecurityConfiguration` liegt in `org.example.cocktails.config` und schützt
+`/mvc/user/**`. Spring stellt die einfache Standard-Loginseite bereit. Zugangsdaten:
+`test` / `test` oder `demo` / `demo`. Katalog und Menü bleiben öffentlich.
+Schreibende MVC-Formulare enthalten über Thymeleaf automatisch den CSRF-Token.
+Dieser Stand verwendet Session-Login; JWT und REST werden hier noch nicht ergänzt.
+
+Im `FridgeService` ist eine `Map<String, FridgeStore>` vorgegeben. Die ebenfalls
+vorgegebene Methode `getCurrentFridge()` liefert direkt den Store des angemeldeten
+Benutzers. Die Teilnehmer müssen keine Benutzernamen weiterreichen. Jeder Store
+enthält nur die Zutaten-IDs eines Benutzers. Alle Kühlschränke liegen ausschließlich
+im Speicher und sind nach einem Neustart leer. Es gibt weder einen Remote-Kühlschrank
+noch ein Remote-Profil. Das bestehende Profil `test` gehört nur zur Milk-Aufgabe;
+die SQLite-Konfiguration ist dort ausgeschaltet.
+
+`FridgeStoreTest` bleibt als Teilnehmer-Test vorgegeben. Er führt paralleles Lesen,
+Hinzufügen und Entfernen aus. Vor der Synchronisierungsaufgabe kann er mit einem
+Nebenläufigkeitsfehler scheitern; nach Ergänzen der Locks muss er bestehen:
+
+```sh
+mvn -Dtest=FridgeStoreTest test
+```
+
+Auf `master` sind die fachlichen MVC-Methoden absichtlich noch nicht implementiert.
+Der Menü- und Login-Aufruf funktionieren bereits; beim Öffnen einer Aufgaben-Seite
+wird zunächst die jeweilige `UnsupportedOperationException` ausgelöst.
+Die TODOs der bisherigen Milk-Aufgabe bleiben unverändert erhalten.
+
+## Warenkorb-Aufgabe
+
+Unter `/mvc/cart` wird ein Zutaten-Warenkorb pro Browser-Session aufgebaut.
+`CartService` ist bereits mit `@SessionScope` versehen und hält die Zutaten-IDs
+in einem `LinkedHashSet`, sodass eine Zutat höchstens einmal vorkommt. Ein Login
+ist nicht erforderlich. Der Warenkorb wird weder in der Datenbank noch im
+benutzerbezogenen Kühlschrank gespeichert und berücksichtigt keine Mengen.
+
+HTML, Menü-Link, Konstruktoren und `CartView` sind vorgegeben. Die Aufgaben-TODOs
+in `CartController` und `CartService` stammen aus `dev`:
+
+- Den Warenkorbinhalt und die Cocktail-Auswahl für die Anzeige zusammenstellen.
+- Beim Hinzufügen eines Cocktails dessen Rezept laden und alle Zutaten-IDs sammeln.
+- Einzelne Zutaten aus dem Warenkorb entfernen.
+- Nach Änderungen per Redirect wieder zum Warenkorb wechseln.
+
+Das Leeren des Warenkorbs ist als einfaches Beispiel bereits implementiert – im
+Service mit `ingredientIds.clear()`, im Controller mit anschließendem Redirect.
+Alle übrigen Aufgabenmethoden sind noch TODOs. Nach der Implementierung lässt
+sich die Session-Trennung mit zwei unabhängigen Browser-Sitzungen beobachten.
+Es wird kein REST-Warenkorb vorbereitet; JWT und JavaScript-Client sind spätere
+Themen.

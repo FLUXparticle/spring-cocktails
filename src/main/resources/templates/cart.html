@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Warenkorb</title>
+</head>
+<body>
+<h3><a th:href="@{/mvc}">Cocktails App</a> &gt; Warenkorb</h3>
+<p>Der Warenkorb bleibt in dieser Browser-Sitzung erhalten. Eine Anmeldung ist nicht erforderlich.</p>
+<h2>Im Warenkorb</h2>
+<ul>
+    <li th:each="ingredient : ${ingredients}">
+        <span th:text="${ingredient.name}"></span>
+        <form method="post" th:action="@{/mvc/cart/items/{id}/remove(id=${ingredient.id})}">
+            <button>Entfernen</button>
+        </form>
+    </li>
+</ul>
+<p th:if="${#lists.isEmpty(ingredients)}">Der Warenkorb ist leer.</p>
+<form method="post" th:action="@{/mvc/cart/clear}">
+    <button>Warenkorb leeren</button>
+</form>
+<h2>Cocktail hinzufügen</h2>
+<form method="post" th:action="@{/mvc/cart/actions/add-cocktail}">
+    <label>Cocktail
+        <select name="cocktailId">
+            <option th:each="cocktail : ${cocktails}" th:value="${cocktail.id}" th:text="${cocktail.name}"></option>
+        </select>
+    </label>
+    <button>Zutaten hinzufügen</button>
+</form>
+</body>
+</html>
