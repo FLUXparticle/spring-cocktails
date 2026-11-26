@@ -22,26 +22,29 @@ public class CocktailController {
 
     @GetMapping("/search")
     public String search() {
-        // TODO: Aufgabe - Cocktails: Das Suchformular anzeigen.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        return "search";
     }
 
     @PostMapping("/search")
     public String search(@RequestParam String query, Model model) {
-        // TODO: Aufgabe - Cocktails: Nach Cocktail- und Zutatennamen suchen und doppelte Treffer vermeiden.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        var cocktails = cocktailService.search(query);
+        model.addAttribute("cocktails", cocktails);
+        return "result";
     }
 
     @GetMapping("/cocktails")
     public String cocktails(Model model) {
-        // TODO: Aufgabe - Cocktails: Die Cocktail-Liste laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        var cocktails = cocktailService.cocktails();
+        model.addAttribute("cocktails", cocktails);
+        return "cocktails";
     }
 
     @GetMapping("/cocktails/{id}")
     public String cocktail(@PathVariable Long id, Model model) {
-        // TODO: Aufgabe - Cocktails: Das Rezept zur Cocktail-ID laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        var cocktail = cocktailService.cocktail(id);
+        model.addAttribute("name", cocktail.name());
+        model.addAttribute("instructions", cocktail.instructions());
+        return "cocktail";
     }
 
     @GetMapping("/ingredients")

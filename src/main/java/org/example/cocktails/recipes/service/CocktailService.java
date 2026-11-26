@@ -8,7 +8,9 @@ import org.example.cocktails.recipes.entry.ApiModels.*;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Async;
 
-import java.util.List;
+import java.util.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -27,13 +29,13 @@ public class CocktailService {
     }
 
     public List<CocktailSummary> cocktails() {
-        // TODO: Aufgabe - Cocktails: Die Cocktail-Liste laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        return repository.findAll().stream().map(c -> new CocktailSummary(c.getId(), c.getName())).sorted(Comparator.comparing(CocktailSummary::name)).toList();
     }
 
     public CocktailDetail cocktail(Long id) {
-        // TODO: Aufgabe - Cocktails: Das Rezept zur Cocktail-ID laden und für die Anzeige bereitstellen.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        var cocktail = repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cocktail nicht gefunden."));
+        return new CocktailDetail(cocktail.getId(), cocktail.getName(), cocktail.getInstructions().stream()
+                .map(i -> new InstructionView(i.getAmountCL(), new IngredientView(i.getIngredient().getId(), i.getIngredient().getName()))).toList());
     }
 
     public List<IngredientView> ingredients() {
@@ -47,7 +49,15 @@ public class CocktailService {
     }
 
     public List<CocktailSummary> search(String query) {
-        // TODO: Aufgabe - Cocktails: Nach Cocktail- und Zutatennamen suchen und doppelte Treffer vermeiden.
-        throw new UnsupportedOperationException("Aufgabe - Cocktails");
+        String term = query.toLowerCase(Locale.ROOT);
+        if (term.isEmpty()) return cocktails();
+        Map<Long, CocktailSummary> matches = new LinkedHashMap<>();
+        repository.findAll().stream().filter(c -> c.getName().toLowerCase(Locale.ROOT).contains(term))
+                .forEach(c -> matches.put(c.getId(), new CocktailSummary(c.getId(), c.getName())));
+        for (var ingredient : ingredients.findAll()) {
+            if (ingredient.getName().toLowerCase(Locale.ROOT).contains(term))
+                repository.findDistinctByInstructionsIngredientId(ingredient.getId()).forEach(c -> matches.put(c.getId(), new CocktailSummary(c.getId(), c.getName())));
+        }
+        return matches.values().stream().sorted(Comparator.comparing(CocktailSummary::name)).toList();
     }
 }
