@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cocktails App</title>
+</head>
+<body>
+<h3>Cocktails App</h3>
+<ul>
+    <li><a th:href="@{/mvc/cocktails}">Cocktails</a></li>
+    <li><a th:href="@{/mvc/ingredients}">Zutaten</a></li>
+    <li><a th:href="@{/mvc/search}">Suche</a></li>
+    <li><a th:href="@{/mvc/user/fridge}">Kühlschrank</a></li>
+    <li><a th:href="@{/mvc/user/possible}">Was ist möglich?</a></li>
+    <li><a th:href="@{/mvc/cart}">Warenkorb</a></li>
+</ul>
+</body>
+</html>
