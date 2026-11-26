@@ -34,6 +34,7 @@ nacheinander die Lösungen zu den folgenden Aufgaben her:
 | 5 | Transaktionen | Bar und Historie mit `@Transactional` gemeinsam speichern und den Rollback testen |
 | 6 | Validierung | Feldregeln, Controller-Validierung und Formularmeldungen für Bars ergänzen |
 | 7 | Asynchrone Verarbeitung | E-Mail-Simulation mit `@Async` erst nach erfolgreichem Commit ausführen |
+| 8 | Milk | Remote-Repository mit WebClient und sequenzielle sowie parallele Milchberechnung implementieren |
 
 ### Textfelder
 
@@ -188,7 +189,8 @@ Die Wartezeit steht direkt in der Listener-Methode: `Thread.sleep(2000)`.
 
 `MilkServiceTest` startet den Spring-Kontext mit dem Profil `test`, injiziert
 `MilkService` und prüft in beiden Varianten die Milchmenge `38` cl. Ein Webserver
-wird nicht gestartet. Ausführen mit:
+wird nicht gestartet. Die Tests greifen auf den echten Remote-Server zu und
+benötigen eine Internetverbindung. Ausführen mit:
 
 ```sh
 mvn -Dtest=MilkServiceTest test
@@ -196,7 +198,11 @@ mvn -Dtest=MilkServiceTest test
 
 Die Tests sind bereits vollständig. Auf `master` scheitern sie absichtlich an den
 TODOs in `MilkService`, `CocktailService` und `RemoteCocktailRepository`.
-Aufgabe der Teilnehmer ist es, diese Methoden zu implementieren. Alle anderen
+Im Repository gehören nur `findAll` und `findById` zur Pflichtaufgabe. Die
+Methoden `findByNameContains` und `findDistinctByInstructionsIngredientId` sind
+Bonus für alternative Lösungen; ihre Implementierungen stehen auf `solution`.
+Die Pflichtlösung filtert die Ergebnisse von `findAll` im Service nach "Milk" und
+benötigt die beiden Bonusmethoden nicht. Alle anderen
 Dateien sind vorgegeben. Die Zeitmessung dient nur der Sichtprüfung, es gibt
 keine Zeit-Assertions.
 
