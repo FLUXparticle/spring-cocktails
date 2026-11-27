@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cocktail-Gewinnspiel – lokale Angriffsübung</title><link rel="stylesheet" href="/evil/evil.css"><script defer src="/evil/attack.js"></script></head>
+<body><main><p class="lab">Lokale Kursdemonstration</p><h1>Ein Cocktail für dich!</h1><p>Du bist bereits im guten Server angemeldet? Sichere dir jetzt deinen Cocktail.</p><button id="attack-btn" disabled>Cocktail sichern (Formular)</button> <button id="json-btn" disabled>JSON-Variante (CORS)</button><p id="status" role="status"></p>
+<section><h2>Was wird vorgeführt?</h2><p>Die Seite versucht, die persönliche Notiz des angemeldeten Benutzers zu überschreiben. Die Notiz enthält einen Stored-XSS-Nachweis. Sobald der Admin sie als HTML öffnet, meldet das Skript seine Ausführung an diesen Hacker-Server. Es werden keine Passwörter, Sitzungscookies oder Tokens gesammelt.</p><p><a href="/evil/loot">Gesammelte Nachweise ansehen</a></p><h2>Vorbereiteter Payload</h2><pre id="payload-preview"></pre></section>
+<form id="attack-form" method="post" target="attack-result" hidden><input type="hidden" name="text" id="attack-text"></form><iframe name="attack-result" title="Versteckte Formularantwort" hidden></iframe>
+</main></body></html>

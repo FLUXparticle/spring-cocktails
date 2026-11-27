@@ -14,9 +14,10 @@ java -jar target/spring-cocktails-1.0-SNAPSHOT.jar
 ```
 
 Startseite: <http://localhost:8080/>. Die Bar-Tabelle liegt unter `/bars`.
-Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Anmeldung, externe APIs,
-Der Cocktail-MVC-Teil und der SQLite-Katalog sind als Aufgaben vorbereitet.
-REST-Oberfläche und Security Lab gehören nicht zu diesem Stand.
+Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Cocktail-MVC mit
+SQLite und Session-Login sowie die REST-API mit Swagger sind als Aufgaben
+vorbereitet. Der JavaScript-Client mit JWT-Login ist vorgegeben. Das Security Lab läuft als
+eigene Application.
 
 ## Branches und Aufgaben
 
@@ -306,3 +307,288 @@ Sein Bestand ist je Benutzer getrennt. Der Warenkorb ist dagegen je Session
 getrennt und ohne Login nutzbar. Die Lese- und Schreiblocks im `FridgeStore`
 sichern gleichzeitige Zugriffe auf den Zutatenbestand ab. Die bisherigen Milk-
 und Bars-Lösungen bleiben erhalten.
+## REST-Aufgabe mit Swagger
+
+`CocktailWebApplication` starten. Swagger UI liegt unter `/swagger-ui/index.html`
+(auch über `/swagger-ui.html` erreichbar), der generierte Vertrag unter
+`/v3/api-docs`. Das MVC-Menü enthält einen Link. Eingebunden ist
+`springdoc-openapi-starter-webmvc-ui` in Version 3.2.1 für Spring Boot 4.2.
+
+`RecipesRestController` ist vorbereitet. Die acht Aufgabenmethoden unter `/api`
+enthalten TODOs und werfen zunächst `UnsupportedOperationException`. Die Aufgabe
+besteht darin, die vorhandenen Services aufzurufen und deren DTOs direkt als JSON
+zurückzugeben. Keine Templates und keine Redirects verwenden. Swagger dokumentiert
+die Zielantworten; die Beispielwerte werden nicht als echte Antwort vorgetäuscht.
+
+| Methode | Pfad | Aufgabe |
+| --- | --- | --- |
+| GET | `/api/cocktails` | Alle Cocktails als Kurzansicht |
+| GET | `/api/cocktails/{id}` | Vollständiges Rezept |
+| GET | `/api/cocktails/search?query=Milch` | Suche über Cocktail- und Zutatennamen |
+| GET | `/api/ingredients` | Zutatenliste |
+| GET | `/api/ingredients/{id}` | Zutat mit ihren Cocktails |
+| GET | `/api/fridge/ingredients` | Eigener Zutatenbestand |
+| PATCH | `/api/fridge/ingredients/{id}` | `{ "inFridge": true }` bzw. false; Erfolg mit 204 ohne Body |
+| GET | `/api/fridge/possible` | Mit dem eigenen Bestand mögliche Cocktails |
+
+Die OpenAPI-Annotationen beschreiben Parameter, Statuscodes und JSON-Strukturen.
+`RecipesApiExamples` enthält Dokumentationsbeispiele direkt aus `cocktails.db`:
+Milkshake hat ID 24, Milch die Zutaten-ID 29. Das vollständige Beispielrezept
+enthält Erdbeeren (27), Vanilleeis (30), Barsirup Erdbeere (13, 2 cl) und Milch
+(29, 15 cl). Listen-Auszüge sind in Swagger als solche gekennzeichnet. Die Suche
+nach Milch und die Zutat Milch sind mit ihren vollständigen Treffern dokumentiert.
+
+Die JWT-Anmeldung ist vorgegeben. Die fachlichen REST-Aufgaben bleiben TODOs:
+
+1. `POST /api/auth/login` in Swagger mit test/test oder demo/demo ausführen.
+2. Den Token unter **Authorize** eintragen; Swagger sendet den Bearer-Header.
+3. `GET /api/auth/me` als WhoAmI-Demo aufrufen.
+4. Die acht Methoden in `RecipesRestController` implementieren und prüfen.
+
+Für die API werden keine Session-Cookies und keine CSRF-Tokens verwendet. Der
+MVC-Login unter `/login` bleibt davon unabhängig. Der vorgegebene JavaScript-Client
+liegt unter `/rest/` und verwendet eine eigene Anmeldung unter `/rest/#/login`.
+Er hält den Token ausschließlich im Arbeitsspeicher und verwirft ihn beim Neuladen
+oder Abmelden. Es gibt keinen REST-Warenkorb und keine Refresh-Tokens.
+
+JWT-Konfiguration und Token-Erzeugung stammen aus SocialDrinks. Das Demo-Secret
+ist unverändert übernommen; ein Kommentar nennt die übliche Ablage über
+Umgebungsvariablen oder Secret Manager. Tokens sind mit HS256 signiert, eine Stunde
+gültig und enthalten Benutzername (`sub`) sowie Rollen (`scope`).
+
+Die Benutzer test/test und demo/demo sind für MVC und JWT vorgegeben. `JwtAuthTest`
+prüft ausschließlich die bereitgestellte Authentifizierung und läuft auch vor der
+REST-Aufgabe: `mvn -Dtest=JwtAuthTest test`. Die bestehenden Milk- und
+FridgeStore-Tests bleiben im Aufgabenstand absichtlich noch nicht erfolgreich.
+
+## Sicherheitsdemonstration: Notizen, Stored XSS und CSRF
+
+Die Demo läuft in der eigenen `org.example.security.SecurityApplication`, getrennt
+von `CocktailWebApplication`. `SecurityApplication.main()` direkt in der IDE starten:
+Ohne Profil sind CSRF, CSP und HTML-Escaping eingeschaltet; die Demo ist auf
+`http://localhost:8080/` erreichbar. Das Profil `security-demo` schaltet gezielt
+auf den verwundbaren Unterrichtsstand um. Die Lab-Konfiguration liegt unter
+`src/main/resources/security/` und wird nur von dieser Application geladen.
+Die Cocktail-Anwendung enthält keine Lab-Controller, Lab-Benutzer oder Lab-Filterkette.
+Das Lab benötigt keine Datenbank; deren Auto-Konfiguration ist für diese Application
+wegen der gemeinsam verwendeten Maven-Abhängigkeiten ausgeschaltet.
+Die Notizen und die Hacker-Nachweise liegen nur im Speicher; ein Neustart leert sie.
+Das CSS-Beispiel für die erste HTML-/CSS-Injection kommt aus dem Kursskript und ist
+hier bewusst nicht vorgegeben.
+
+### Starten und Links zum Kopieren
+
+Im Projektverzeichnis zunächst bauen:
+
+```sh
+mvn package
+```
+
+Guter Server auf **8080**, bewusst verwundbarer Übungsstand:
+
+```sh
+java -Dloader.main=org.example.security.SecurityApplication -cp target/spring-cocktails-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher --spring.profiles.active=security-demo
+```
+
+Alternativ in der IDE `SecurityApplication` starten und das Programmargument
+`--spring.profiles.active=security-demo` setzen. Das normale JAR und
+`mvn spring-boot:run` starten weiterhin `BarsApplication`.
+
+Hacker-Server in einem zweiten Terminal auf **1337**:
+
+```sh
+java --add-modules jdk.httpserver -cp target/classes org.example.security.hacker.HackerServer
+```
+
+Auch direkt über `HackerServer.main()` in der IDE startbar. Er verwendet ausschließlich
+JDK-Klassen, startet kein Spring und bindet nur an die Loopback-Adresse. Port und
+Ziel-Origin sind bei Bedarf mit `--port=1337 --good-origin=http://localhost:8080`
+änderbar. Auf dem guten Server muss dann `demo.security.attacker-origin` dieselbe
+Angreifer-Origin enthalten. Beide Server verwenden den Hostnamen **localhost**;
+`localhost` und `127.0.0.1` im Browser nicht mischen.
+
+- [Benutzernotiz](http://localhost:8080/good-user.html) — **employee / Secret123**
+- [Angreiferseite](http://localhost:1337/evil/csrf-attack.html)
+- [Adminübersicht](http://localhost:8080/good-admin.html) — **admin / Secret123**
+- [Gesammelte Nachweise](http://localhost:1337/evil/loot)
+
+Die Konten `employee` und `admin` existieren ausschließlich in der SecurityApplication. Der Benutzername
+für eine Notiz stammt immer aus Spring Security, niemals aus einem Request-Parameter.
+Ein normaler Benutzer darf nur seine eigene Notiz lesen/schreiben; `/notes/all`
+ist auch im verwundbaren Modus ausschließlich für `ROLE_ADMIN` zugänglich.
+
+### Ablauf der Vorführung
+
+1. **HTML-/CSS-Injection:** Benutzerseite öffnen, als `employee` anmelden und den
+   CSS-/HTML-Text aus dem Kursskript als Notiz speichern. Danach die Adminseite
+   öffnen und als `admin` anmelden. Die Übersicht verwendet absichtlich `innerHTML`;
+   deshalb wird der gespeicherte HTML-Inhalt interpretiert. Das demonstriert zunächst
+   HTML-/CSS-Injection, noch keine JavaScript-Ausführung.
+2. **Stored XSS ohne CSRF:** Auf der Angreiferseite wird ein JavaScript-Payload im
+   Feld „Vorbereiteter Payload“ als Text angezeigt. Diesen kopieren und als
+   `employee` manuell in die Notiz einfügen und speichern. Anschließend als `admin`
+   die Übersicht laden. Das eingeschleuste `onerror`-Skript schickt einen sichtbaren
+   Demo-Marker an `/evil/collect`. `/evil/loot` zeigt Zeit, Origin und Inhalt.
+3. **CSRF → Stored XSS:** Wieder als **employee** anmelden. Dann auf der fremden
+   Angreiferseite „Cocktail sichern (Formular)“ klicken. Das fremde Formular sendet
+   ohne CSRF-Token eine Notizänderung an den guten Server. Danach als **admin**
+   anmelden und die Notizen laden. Der gespeicherte Payload wird ausgeführt und
+   erzeugt einen weiteren Marker beim Hacker-Server.
+4. **CORS-Variante:** „JSON-Variante (CORS)“ verwendet stattdessen einen
+   credentialed JSON-`fetch`. Diese Variante benötigt zusätzlich die absichtlich
+   pauschale CORS-Freigabe für jede Origin. Mit gesperrter Origin schlägt
+   sie beim Preflight fehl.
+5. **Lösungen einzeln zeigen:** Die Schalter unten einzeln aktivieren und den
+   jeweiligen Schritt wiederholen. Bei jeder Admin-Aktualisierung kann eine
+   verwundbare Notiz erneut ausgeführt werden. Für eine neue Vorführung die Notiz
+   als Benutzer durch normalen Text ersetzen; für leere Nachweise den Hacker-Server
+   neu starten.
+
+Alle Tabs desselben Browserprofils teilen sich die Anmeldung. Nach der Admin-Anmeldung
+ist daher auch die Benutzerseite als Admin authentifiziert. Für den nächsten Angriff
+zuerst wieder als `employee` anmelden. Der Name des tatsächlich angemeldeten Benutzers
+wird auf den Seiten angezeigt. Das Formular-Ergebnis liegt in einem fremden versteckten
+Iframe und ist für die Angreiferseite nicht lesbar. `X-Frame-Options` kann dessen
+**Darstellung** verhindern, obwohl die serverseitige Änderung bereits stattgefunden
+hat. Die Formularseite behauptet deshalb nur „abgeschickt“, nicht „erfolgreich“.
+
+Es werden **keine Passwörter, JWTs oder Sitzungscookies übertragen**. Der Nachweis
+enthält nur den Marker und die URL der Adminseite. `SECURITYSESSION` bleibt HttpOnly.
+Trotzdem kann XSS JavaScript innerhalb der Admin-Origin ausführen; HttpOnly beseitigt
+also nicht die XSS-Lücke. Der Hacker-Server ignoriert empfangene Cookie- und
+Authorization-Header und speichert nur den explizit gesendeten Demo-Body.
+
+### Schutzmaßnahmen zum schrittweisen Aktivieren
+
+Im Profil `security-demo` sind die folgenden Dev-Einstellungen absichtlich unsicher:
+
+```properties
+demo.security.csrf-enabled=false
+demo.security.csp-enabled=false
+demo.security.escape-notes=false
+demo.security.allow-any-origin=true
+```
+
+Das entspricht dem Unterrichtsfall „Dev-Konfiguration versehentlich ausgerollt“.
+Dieses Profil nicht außerhalb der lokalen Übung einsetzen. Die sicheren Defaults in
+`DemoSettings` und die Ausnahmen in `DemoSecurityConfiguration` sind im Code kommentiert.
+Der vollständige Lösungsstand ist ein zweites Profil, das **nach** `security-demo`
+aktiviert wird:
+
+```sh
+java -Dloader.main=org.example.security.SecurityApplication -cp target/spring-cocktails-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher --spring.profiles.active=security-demo,security-demo-secure
+```
+
+Einzelne Lösungen lassen sich unabhängig über Kommandozeilenparameter vorführen:
+
+```sh
+# Nur CSRF: legitimes Speichern funktioniert, das fremde Formular scheitert.
+java -Dloader.main=org.example.security.SecurityApplication -cp target/spring-cocktails-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher --spring.profiles.active=security-demo --demo.security.csrf-enabled=true
+
+# Nur CSP: die Notiz kann gespeichert werden, Inline-Code und Inline-CSS werden blockiert.
+java -Dloader.main=org.example.security.SecurityApplication -cp target/spring-cocktails-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher --spring.profiles.active=security-demo --demo.security.csp-enabled=true
+
+# Nur HTML-Escaping: der Admin sieht den Payload als Text.
+java -Dloader.main=org.example.security.SecurityApplication -cp target/spring-cocktails-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher --spring.profiles.active=security-demo --demo.security.escape-notes=true
+
+# Nur CORS-Korrektur: die fremde JSON-Variante wird nicht zugelassen.
+java -Dloader.main=org.example.security.SecurityApplication -cp target/spring-cocktails-1.0-SNAPSHOT.jar org.springframework.boot.loader.launch.PropertiesLauncher --spring.profiles.active=security-demo --demo.security.allow-any-origin=false
+```
+
+#### CSP
+
+Der aktuelle Spring-Security-Stil ist bereits in `DemoSecurityConfiguration` eingebaut:
+
+```java
+http.headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives(
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; " +
+        "connect-src 'self'; object-src 'none'; base-uri 'self'; " +
+        "frame-ancestors 'self'; form-action 'self'")));
+```
+
+- `default-src 'self'`: Standard für die jeweiligen Ressourcen-Direktiven.
+- `script-src 'self'`: eigene Skriptdateien, keine Inline-Skripte oder `onerror`-Handler.
+- `style-src 'self'`: eigene CSS-Dateien, keine eingeschleusten `<style>`-Blöcke.
+- `img-src 'self'`: Bilder nur von der eigenen Origin; ein wirklich benötigtes CDN
+  müsste hier explizit ergänzt werden, z. B. `img-src 'self' https://cdn.example.com`.
+- `connect-src 'self'`: auch `fetch` zum Hacker-Server wird blockiert.
+- `object-src 'none'`: keine Plugin-/Object-Inhalte.
+- `base-uri`, `frame-ancestors` und `form-action` begrenzen weitere Einbettungs- und
+  Navigationsmöglichkeiten. CSP ersetzt das korrekte Escaping nicht.
+
+Die Demo-Seiten verwenden externe eigene JS-/CSS-Dateien und funktionieren daher auch
+mit der strengen CSP. Die Policy wird nicht ungeprüft auf AngularJS oder Swagger UI
+übertragen. Dokumentation: <https://developer.mozilla.org/de/docs/Web/HTTP/Guides/CSP>.
+
+#### HTML-Ausgabe und Escaping
+
+`DemoNoteController.forHtml` enthält die Lösung:
+
+```java
+return HtmlUtils.htmlEscape(text);
+```
+
+Sie wird mit `escape-notes=true` für die Admin-HTML-Ausgabe aktiviert. Der gespeicherte
+Originaltext und der persönliche Editor bleiben unverändert; beim Bearbeiten ist
+`textarea.value` bereits ein Textkontext. Nicht pauschal sämtliche JSON-Antworten
+escapen und nicht mehrfach escapen. Alternativ lässt sich der unsichere
+`innerHTML`-Aufbau in `good.js` durch DOM-Knoten mit `textContent` ersetzen.
+Thymeleaf verwendet für sichere Textausgabe weiterhin `th:text`, nicht `th:utext`.
+
+#### CSRF und Cookies
+
+Unsere Authentifizierung ist **cookie-basiert**, deshalb im Lösungsstand:
+
+```java
+http.csrf(csrf -> csrf.spa());
+```
+
+Spring Security richtet damit die SPA-Integration ein. JavaScript lädt zuerst
+`GET /security-demo/session`, liest **XSRF-TOKEN** und sendet **X-XSRF-TOKEN** bei Änderungen.
+Das ist der Headername des `CookieCsrfTokenRepository`; `X-CSRF-TOKEN` ist ein anderer
+üblicher Name, aber nicht dessen Standard. Nach Login/Logout wird der Token erneuert.
+Thymeleaf-Formulare verwenden weiterhin `_csrf`. Die Notizseiten unterstützen dies
+bereits, damit sie im Lösungsstand weiter funktionieren.
+
+```properties
+server.servlet.session.cookie.http-only=true
+server.servlet.session.cookie.same-site=Lax
+```
+
+`SameSite=Lax` oder `Strict` sind zusätzliche Schutzmaßnahmen. Sie blockieren diese
+Vorführung zwischen **localhost:1337 und localhost:8080 nicht**, weil unterschiedliche
+Ports unterschiedliche Origins, aber hier dieselbe Site ergeben. Cookies sind zudem
+nicht nach Port getrennt. Mit anderen Hostnamen sähe der Versuch anders aus. Unter
+HTTPS wäre zusätzlich `server.servlet.session.cookie.secure=true` sinnvoll.
+Nur für tatsächlich stateless APIs, die ausschließlich explizit gesetzte Bearer-Header
+akzeptieren und keine Cookies als Authentifizierung verwenden, ist das Abschalten
+von CSRF eine andere mögliche Konfiguration. Ein Cookie-JWT benötigt ebenfalls Schutz.
+
+#### CORS
+
+Die Demo verwendet die Konfiguration im Security-Layer. Der Unterrichtsfall lautet:
+Jemand hat zur Entwicklung jede Origin zugelassen; diese Einstellung ist versehentlich
+auf dem Live-Server gelandet. Die unsichere Variante kombiniert
+`setAllowedOriginPatterns(List.of("*"))` mit `allowCredentials(true)`. Sie vertraut
+also jeder Origin, nicht speziell dem Hacker-Server. Spring spiegelt die anfragende
+Origin im Antwort-Header; die Wildcard steht nicht im `Access-Control-Allow-Origin`-
+Header. Die Lösung entfernt die pauschale Freigabe. Bei einem echten getrennten Frontend würde man ausschließlich dessen
+vertrauenswürdige Origin erlauben, etwa:
+
+```java
+config.setAllowedOrigins(List.of("https://app.example.com"));
+config.setAllowedMethods(List.of("GET", "POST"));
+config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
+config.setAllowCredentials(true);
+```
+
+CORS ist kein Ersatz für CSRF. Ein normales fremdes HTML-Formular braucht keinen
+JSON-Preflight. Der konfigurierte Spring-CORS-Filter kann dessen expliziten fremden
+Origin-Header ebenfalls ablehnen, dennoch bleibt die Tokenprüfung die eigenständige
+CSRF-Lösung.
+
+### Prüfung der Demonstration
+
+Das Security Lab wird als lokale, harmlose Schulungsdemonstration im Browser
+untersucht. Zusätzliche Infrastruktur- und Regressionstests gehören nicht zu den
+Teilnehmeraufgaben und sind aus dem Testverzeichnis entfernt.

@@ -1,0 +1,8 @@
+<h3>Anmelden</h3>
+<form ng-submit="login()">
+    <label>Benutzername <input ng-model="username" autocomplete="username" required></label>
+    <label>Passwort <input type="password" ng-model="password" autocomplete="current-password" required></label>
+    <button ng-disabled="busy">Anmelden</button>
+</form>
+<p role="alert" ng-if="error">{{error}}</p>
+<p>Der Token bleibt nur im Arbeitsspeicher. Nach Neuladen der Seite ist eine neue Anmeldung erforderlich.</p>
