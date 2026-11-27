@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notizen – Sicherheitsdemo</title><link rel="stylesheet" th:href="@{/demo-assets/good.css}"><script defer th:src="@{/demo-assets/good.js}"></script></head>
+<body th:attr="data-admin=${admin}"><nav><a th:href="@{/}">Spring Cocktails</a><a th:href="@{/good-user.html}">Benutzer</a><a th:href="@{/good-admin.html}">Admin</a></nav><main>
+<h1 th:text="${admin ? 'Notizen – Adminübersicht' : 'Meine Notiz'}"></h1><p class="lab">Lokale Sicherheitsübung · <span id="mode">Einstellungen werden geladen …</span></p>
+<section><h2>Anmeldung</h2><form id="login-form"><label>Benutzername <input id="username" autocomplete="username" th:value="${username}" required></label><label>Passwort <input type="password" id="password" autocomplete="current-password" value="Secret123" required></label><button>Anmelden</button></form><p id="login-status" role="status"></p></section>
+<section id="user-section" th:if="${!admin}" hidden><h2>Persönliche Notiz</h2><p>Den Text für die Demonstration aus dem Kursskript hier einfügen.</p><label for="note">Notiz</label><textarea id="note" maxlength="16000" rows="12"></textarea><button id="save-note">Notiz speichern</button><p id="save-status" role="status"></p></section>
+<section id="admin-section" th:if="${admin}" hidden><h2>Notizen aller Benutzer</h2><button id="refresh-notes">Notizen neu laden</button><div id="notes-output"></div></section>
+<section><h2>Demoseiten</h2><p><a id="attacker-link">Angreiferseite öffnen</a> · <a id="loot-link">Nachweise beim Hacker-Server ansehen</a></p></section>
+</main></body></html>
