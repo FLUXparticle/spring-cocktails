@@ -36,8 +36,7 @@ public class RecipesRestController {
             content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CocktailSummary.class)),
                     examples = @ExampleObject(name = "Katalog-Auszug", value = RecipesApiExamples.COCKTAILS)))
     public List<CocktailSummary> cocktails() {
-        // TODO: Aufgabe - REST-API: Die Cocktail-Liste des Services direkt als JSON zurückgeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return catalog.cocktails();
     }
 
     @GetMapping("/cocktails/{id}")
@@ -48,8 +47,7 @@ public class RecipesRestController {
                     examples = @ExampleObject(value = RecipesApiExamples.COCKTAIL)))
     @ApiResponse(responseCode = "404", description = "Kein Cocktail mit dieser ID vorhanden.", content = @Content)
     public CocktailDetail cocktail(@Parameter(description = "Cocktail-ID, zum Beispiel Milkshake", example = "24") @PathVariable Long id) {
-        // TODO: Aufgabe - REST-API: Das Rezept zur ID vom Service laden und zurückgeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return catalog.cocktail(id);
     }
 
     @GetMapping("/cocktails/search")
@@ -59,8 +57,7 @@ public class RecipesRestController {
             content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CocktailSummary.class)),
                     examples = @ExampleObject(value = RecipesApiExamples.SEARCH)))
     public List<CocktailSummary> search(@Parameter(description = "Teil eines Cocktail- oder Zutatennamens", example = "Milch") @RequestParam String query) {
-        // TODO: Aufgabe - REST-API: Den GET-Parameter query an die Suche des Services übergeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return catalog.search(query);
     }
 
     @GetMapping("/ingredients")
@@ -69,8 +66,7 @@ public class RecipesRestController {
             content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = IngredientView.class)),
                     examples = @ExampleObject(name = "Zutaten-Auszug", value = RecipesApiExamples.INGREDIENTS)))
     public List<IngredientView> ingredients() {
-        // TODO: Aufgabe - REST-API: Die Zutatenliste des Services zurückgeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return catalog.ingredients();
     }
 
     @GetMapping("/ingredients/{id}")
@@ -81,8 +77,7 @@ public class RecipesRestController {
                     examples = @ExampleObject(value = RecipesApiExamples.INGREDIENT)))
     @ApiResponse(responseCode = "404", description = "Keine Zutat mit dieser ID vorhanden.", content = @Content)
     public IngredientDetail ingredient(@Parameter(description = "Zutaten-ID, zum Beispiel Milch", example = "29") @PathVariable Long id) {
-        // TODO: Aufgabe - REST-API: Die Zutat mit den zugehörigen Cocktails vom Service zurückgeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return catalog.ingredient(id);
     }
 
     @GetMapping("/fridge/ingredients")
@@ -94,8 +89,7 @@ public class RecipesRestController {
                     examples = @ExampleObject(name = "Bestands-Auszug", value = RecipesApiExamples.FRIDGE)))
     @ApiResponse(responseCode = "401", description = "Zuerst POST /api/auth/login aufrufen und den Bearer-Token mitsenden.", content = @Content)
     public List<FridgeIngredient> fridge() {
-        // TODO: Aufgabe - REST-API: Den Bestand des angemeldeten Benutzers vom FridgeService zurückgeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return fridge.getFridgeIngredients();
     }
 
     @PatchMapping("/fridge/ingredients/{id}")
@@ -114,8 +108,7 @@ public class RecipesRestController {
                             examples = {@ExampleObject(name = "Milch hinzufügen", value = "{\"inFridge\":true}"),
                                     @ExampleObject(name = "Milch entfernen", value = "{\"inFridge\":false}")}))
             @Valid @RequestBody IngredientStatus request) {
-        // TODO: Aufgabe - REST-API: Den JSON-Body an den FridgeService übergeben; danach ohne Body mit HTTP 204 antworten.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        fridge.updateIngredientStatus(id, request.inFridge());
     }
 
     @GetMapping("/fridge/possible")
@@ -127,8 +120,7 @@ public class RecipesRestController {
                     examples = @ExampleObject(value = RecipesApiExamples.POSSIBLE)))
     @ApiResponse(responseCode = "401", description = "Bearertoken aus POST /api/auth/login mitsenden.", content = @Content)
     public List<CocktailSummary> possible() {
-        // TODO: Aufgabe - REST-API: Die mit dem eigenen Kühlschrankbestand möglichen Cocktails zurückgeben.
-        throw new UnsupportedOperationException("Aufgabe - REST-API");
+        return fridge.getPossibleCocktails();
     }
 
     public record IngredientStatus(@NotNull @Schema(description = "Zutat im eigenen Kühlschrank vorhanden?", example = "true", requiredMode = Schema.RequiredMode.REQUIRED) Boolean inFridge) {
