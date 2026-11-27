@@ -1,7 +1,6 @@
 package org.example.cocktails.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
@@ -17,16 +16,16 @@ import org.springframework.context.annotation.Configuration;
         beschreiben die zu implementierende Lösung und sind keine simulierten Antworten.
 
         Katalog: öffentlich. Kühlschrank: je angemeldetem Benutzer, nur im Arbeitsspeicher.
-        Vorläufig wird der vorhandene Session-Login verwendet: /login in einem zweiten Tab
-        öffnen (test/test oder demo/demo), danach zu Swagger zurückkehren. Der Browser sendet
-        das Session-Cookie automatisch; kein Cookie muss in Authorize eingetragen werden.
-        Danach GET /api/session ausführen, um den CSRF-Cookie zu laden. Swagger sendet ihn
-        bei PATCH automatisch als Header X-XSRF-TOKEN. Nach erneutem Login oder Logout
-        GET /api/session wiederholen. JWT ist eine spätere, getrennte Aufgabe und noch nicht aktiv.
+        POST /api/auth/login mit {"username":"test","password":"test"} liefert ein JWT.
+        Den zurückgegebenen Token unter Authorize eintragen; Swagger sendet ihn als
+        Authorization: Bearer … . Das JWT bleibt im Arbeitsspeicher, nicht in Cookies.
+        GET /api/auth/me zeigt Benutzer und Berechtigungen des geprüften Tokens.
+        Katalog und Kühlschrank bleiben Aufgaben-TODOs, die Authentifizierung ist vorgegeben.
+        Die API ist stateless und benötigt keinen CSRF-Token. Der MVC-Login unter /login
+        verwendet weiterhin eine separate HTTP-Session und CSRF für Formulare.
         Einen REST-Warenkorb gibt es nicht.
         """))
-@SecurityScheme(name = "session", type = SecuritySchemeType.APIKEY,
-        in = SecuritySchemeIn.COOKIE, paramName = "JSESSIONID",
-        description = "Session nach Anmeldung über /login. Der Browser sendet das Cookie automatisch; JWT folgt später.")
+@SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT",
+        description = "Token aus POST /api/auth/login hier ohne das Präfix Bearer eintragen.")
 public class OpenApiConfiguration {
 }

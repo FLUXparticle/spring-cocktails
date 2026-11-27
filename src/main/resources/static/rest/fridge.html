@@ -1,0 +1,16 @@
+<p ng-if="!session.authenticated">Der Kühlschrank benötigt eine <a href="#/login">Anmeldung</a>.</p>
+<h3>Im Kühlschrank von {{session.username}}</h3>
+<ul>
+    <li ng-repeat="ingredient in inFridge">
+        <button ng-disabled="!sessionReady || busy" ng-click="removeFromFridge(ingredient.id)">-</button>
+        <a ng-href="#/ingredients/{{ingredient.id}}">{{ingredient.name}}</a>
+    </li>
+</ul>
+
+<h3>Nicht im Kühlschrank</h3>
+<ul>
+    <li ng-repeat="ingredient in notInFridge">
+        <button ng-disabled="!sessionReady || busy" ng-click="addToFridge(ingredient.id)">+</button>
+        <a ng-href="#/ingredients/{{ingredient.id}}">{{ingredient.name}}</a>
+    </li>
+</ul>

@@ -14,9 +14,6 @@ import org.example.cocktails.recipes.entry.ApiModels.*;
 import org.example.cocktails.recipes.service.CocktailService;
 import org.example.cocktails.recipes.service.FridgeService;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -91,11 +88,11 @@ public class RecipesRestController {
     @GetMapping("/fridge/ingredients")
     @Operation(tags = "Kühlschrank", summary = "Zutatenbestand des angemeldeten Benutzers anzeigen",
             description = "fridge.getFridgeIngredients() zurückgeben. Für jede Katalog-Zutat zeigt inFridge, ob sie im eigenen Kühlschrank liegt.")
-    @SecurityRequirement(name = "session")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "200", description = "Alle Zutaten mit Bestand; Beispiel ist ein Auszug mit allen Milkshake-Zutaten im Kühlschrank.",
             content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = FridgeIngredient.class)),
                     examples = @ExampleObject(name = "Bestands-Auszug", value = RecipesApiExamples.FRIDGE)))
-    @ApiResponse(responseCode = "401", description = "Zuerst über /login anmelden.", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Zuerst POST /api/auth/login aufrufen und den Bearer-Token mitsenden.", content = @Content)
     public List<FridgeIngredient> fridge() {
         // TODO: Aufgabe - REST-API: Den Bestand des angemeldeten Benutzers vom FridgeService zurückgeben.
         throw new UnsupportedOperationException("Aufgabe - REST-API");
@@ -104,12 +101,12 @@ public class RecipesRestController {
     @PatchMapping("/fridge/ingredients/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(tags = "Kühlschrank", summary = "Eine Zutat hinzufügen oder entfernen",
-            description = "fridge.updateIngredientStatus(id, request.inFridge()) aufrufen. true fügt hinzu, false entfernt. Keine Benutzer-ID annehmen: Der Service wählt den eigenen Kühlschrank. Erfolg: HTTP 204 ohne Antwortkörper. Vor Execute einmal GET /api/session ausführen (CSRF).")
-    @SecurityRequirement(name = "session")
+            description = "fridge.updateIngredientStatus(id, request.inFridge()) aufrufen. true fügt hinzu, false entfernt. Keine Benutzer-ID annehmen: Der Service wählt den eigenen Kühlschrank. Erfolg: HTTP 204 ohne Antwortkörper. Vor Execute den Token aus POST /api/auth/login unter Authorize eintragen.")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "204", description = "Bestand geändert; kein Antwortkörper.", content = @Content)
     @ApiResponse(responseCode = "400", description = "inFridge fehlt, ist null oder der JSON-Body ist ungültig.", content = @Content)
     @ApiResponse(responseCode = "401", description = "Nicht angemeldet.", content = @Content)
-    @ApiResponse(responseCode = "403", description = "CSRF-Token fehlt/ist ungültig oder die Berechtigung fehlt.", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Der Token besitzt nicht die Berechtigung USER.", content = @Content)
     @ApiResponse(responseCode = "404", description = "Keine Zutat mit dieser ID vorhanden.", content = @Content)
     public void updateFridge(@Parameter(description = "Zutaten-ID, zum Beispiel Milch", example = "29") @PathVariable Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
@@ -124,32 +121,16 @@ public class RecipesRestController {
     @GetMapping("/fridge/possible")
     @Operation(tags = "Kühlschrank", summary = "Mit dem eigenen Bestand mögliche Cocktails anzeigen",
             description = "fridge.getPossibleCocktails() zurückgeben. Milkshake ist möglich, wenn die Zutaten 13, 27, 29 und 30 vorhanden sind; nur Milch (29) genügt nicht.")
-    @SecurityRequirement(name = "session")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "200", description = "Mögliche Cocktails; Beispiel bei Bestand {13,27,29,30}.",
             content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CocktailSummary.class)),
                     examples = @ExampleObject(value = RecipesApiExamples.POSSIBLE)))
-    @ApiResponse(responseCode = "401", description = "Zuerst anmelden.", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Bearertoken aus POST /api/auth/login mitsenden.", content = @Content)
     public List<CocktailSummary> possible() {
         // TODO: Aufgabe - REST-API: Die mit dem eigenen Kühlschrankbestand möglichen Cocktails zurückgeben.
         throw new UnsupportedOperationException("Aufgabe - REST-API");
     }
 
-    @GetMapping("/session")
-    @Operation(tags = "Session (vorgegeben)", summary = "Anmeldestatus prüfen und CSRF-Cookie laden",
-            description = "Hilfsmethode ist bereits implementiert und gehört nicht zu den Aufgaben-TODOs. Nach Login/Logout ausführen. Swagger liest den Cookie XSRF-TOKEN und sendet ihn bei PATCH als X-XSRF-TOKEN. Keine JWT-Ausstellung.")
-    @ApiResponse(responseCode = "200", description = "Aktueller Anmeldestatus; auch ohne Login aufrufbar.",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = SessionView.class),
-                    examples = {@ExampleObject(name = "Angemeldet", value = "{\"authenticated\":true,\"username\":\"test\"}"),
-                            @ExampleObject(name = "Nicht angemeldet", value = "{\"authenticated\":false,\"username\":null}")}))
-    public SessionView session(@Parameter(hidden = true) Authentication auth, @Parameter(hidden = true) CsrfToken csrf) {
-        csrf.getToken();
-        boolean authenticated = auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken);
-        return new SessionView(authenticated, authenticated ? auth.getName() : null);
-    }
-
     public record IngredientStatus(@NotNull @Schema(description = "Zutat im eigenen Kühlschrank vorhanden?", example = "true", requiredMode = Schema.RequiredMode.REQUIRED) Boolean inFridge) {
-    }
-
-    public record SessionView(boolean authenticated, String username) {
     }
 }

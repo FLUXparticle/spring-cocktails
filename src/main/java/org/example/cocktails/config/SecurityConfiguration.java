@@ -1,37 +1,43 @@
 package org.example.cocktails.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@ConditionalOnWebApplication
 public class SecurityConfiguration {
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/mvc/user/**", "/api/fridge/**").hasRole("USER")
-                        .anyRequest().permitAll())
-                .csrf(csrf -> csrf.spa())
-                .exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
-                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                        request -> request.getRequestURI().startsWith(request.getContextPath() + "/api/")))
-                .formLogin(login -> login.defaultSuccessUrl("/mvc"))
-                .logout(logout -> logout.logoutSuccessUrl("/mvc"))
+    @Order(1)
+    public SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+        return http.securityMatcher("/api/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/login", "/api/cocktails/**", "/api/ingredients/**").permitAll()
+                        .requestMatchers("/api/fridge/**").hasAuthority("SCOPE_USER")
+                        .anyRequest().authenticated())
+                // Nur diese API-Kette verwendet ausschließlich explizite Bearer-Header.
+                // MVC und Security Lab behalten ihren eigenen Cookie-/CSRF-Schutz.
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
                 .build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        var encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        return new InMemoryUserDetailsManager(
-                User.withUsername("test").password(encoder.encode("test")).roles("USER").build(),
-                User.withUsername("demo").password(encoder.encode("demo")).roles("USER").build());
+    @Order(2)
+    public SecurityFilterChain mvcSecurity(HttpSecurity http) throws Exception {
+        return http.authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/user/**", "/mvc/user/**").hasRole("USER")
+                        .anyRequest().permitAll())
+                .csrf(csrf -> csrf.spa())
+                .formLogin(login -> login.defaultSuccessUrl("/mvc", false))
+                .logout(logout -> logout.logoutSuccessUrl("/login?logout"))
+                .build();
     }
 }

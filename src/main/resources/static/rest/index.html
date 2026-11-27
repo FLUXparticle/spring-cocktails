@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de" ng-app="CocktailApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="/rest/">
+    <title>Cocktails App</title>
+    <link rel="stylesheet" href="/rest/app.css">
+    <script defer src="/vendor/angularjs/angular.min.js"></script>
+    <script defer src="/vendor/angularjs/angular-route.min.js"></script>
+    <script defer src="/rest/app.js"></script>
+</head>
+<body ng-cloak>
+<header>
+    <a href="#/">Cocktails App</a>
+    <span ng-if="session.authenticated">{{session.username}}</span>
+    <a href="#/login" ng-if="sessionReady && !session.authenticated">Anmelden</a>
+    <button ng-if="session.authenticated" ng-disabled="!sessionReady" ng-click="logout()">Abmelden</button>
+</header>
+<main>
+    <p role="alert" ng-if="apiError">{{apiError}}</p>
+    <div ng-view></div>
+</main>
+</body>
+</html>

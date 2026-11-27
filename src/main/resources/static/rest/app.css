@@ -1,0 +1,6 @@
+[ng-cloak] { display: none !important; }
+body { font-family: sans-serif; margin: 1rem; }
+header { margin-bottom: 1rem; }
+header > * { margin-right: .5rem; }
+li { margin: .25rem 0; }
+[role="alert"] { color: #a00; }

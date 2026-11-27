@@ -16,7 +16,8 @@ java -jar target/spring-cocktails-1.0-SNAPSHOT.jar
 Startseite: <http://localhost:8080/>. Die Bar-Tabelle liegt unter `/bars`.
 Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Cocktail-MVC mit
 SQLite und Session-Login sowie die REST-API mit Swagger sind als Aufgaben
-vorbereitet. Ein JavaScript-Client und das Security Lab gehören nicht zu diesem Stand.
+vorbereitet. Der JavaScript-Client mit JWT-Login ist vorgegeben. Das Security Lab folgt als
+eigene Application.
 
 ## Branches und Aufgaben
 
@@ -288,17 +289,25 @@ enthält Erdbeeren (27), Vanilleeis (30), Barsirup Erdbeere (13, 2 cl) und Milch
 (29, 15 cl). Listen-Auszüge sind in Swagger als solche gekennzeichnet. Die Suche
 nach Milch und die Zutat Milch sind mit ihren vollständigen Treffern dokumentiert.
 
-JWT ist weiterhin eine spätere Aufgabe. Vorläufig verwendet der Kühlschrank den
-bestehenden Session-Login. Die Zugriffsregeln und CSRF-Konfiguration sind vorgegeben:
+Die JWT-Anmeldung ist vorgegeben. Die fachlichen REST-Aufgaben bleiben TODOs:
 
-1. In einem zweiten Tab über `/login` mit test/test oder demo/demo anmelden.
-2. Zu Swagger zurückkehren; der Browser sendet das Session-Cookie automatisch.
-3. Den bereits implementierten Hilfsendpunkt `GET /api/session` ausführen. Er lädt
-   den CSRF-Cookie und zeigt den Anmeldestatus an.
-4. Bei PATCH sendet Swagger den CSRF-Cookie automatisch als Header `X-XSRF-TOKEN`.
-   Nach Login/Logout Schritt 3 wiederholen.
+1. `POST /api/auth/login` in Swagger mit test/test oder demo/demo ausführen.
+2. Den Token unter **Authorize** eintragen; Swagger sendet den Bearer-Header.
+3. `GET /api/auth/me` als WhoAmI-Demo aufrufen.
+4. Die acht Methoden in `RecipesRestController` implementieren und prüfen.
 
-Unangemeldete Kühlschrank-Aufrufe liefern 401 statt einer HTML-Weiterleitung.
-Der MVC-Login und dessen CSRF-Schutz bleiben erhalten. Es gibt keine JWT-Ausstellung
-und keinen REST-Warenkorb. Die vollständigen fachlichen Services stehen auf
-`solution`; nach Übernahme der Vorbereitung kann der REST-Controller darauf aufbauen.
+Für die API werden keine Session-Cookies und keine CSRF-Tokens verwendet. Der
+MVC-Login unter `/login` bleibt davon unabhängig. Der vorgegebene JavaScript-Client
+liegt unter `/rest/` und verwendet eine eigene Anmeldung unter `/rest/#/login`.
+Er hält den Token ausschließlich im Arbeitsspeicher und verwirft ihn beim Neuladen
+oder Abmelden. Es gibt keinen REST-Warenkorb und keine Refresh-Tokens.
+
+JWT-Konfiguration und Token-Erzeugung stammen aus SocialDrinks. Das Demo-Secret
+ist unverändert übernommen; ein Kommentar nennt die übliche Ablage über
+Umgebungsvariablen oder Secret Manager. Tokens sind mit HS256 signiert, eine Stunde
+gültig und enthalten Benutzername (`sub`) sowie Rollen (`scope`).
+
+Die Benutzer test/test und demo/demo sind für MVC und JWT vorgegeben. `JwtAuthTest`
+prüft ausschließlich die bereitgestellte Authentifizierung und läuft auch vor der
+REST-Aufgabe: `mvn -Dtest=JwtAuthTest test`. Die bestehenden Milk- und
+FridgeStore-Tests bleiben im Aufgabenstand absichtlich noch nicht erfolgreich.
