@@ -14,9 +14,9 @@ java -jar target/spring-cocktails-1.0-SNAPSHOT.jar
 ```
 
 Startseite: <http://localhost:8080/>. Die Bar-Tabelle liegt unter `/bars`.
-Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Anmeldung, externe APIs,
-Der Cocktail-MVC-Teil und der SQLite-Katalog sind als Aufgaben vorbereitet.
-REST-Oberfläche und Security Lab gehören nicht zu diesem Stand.
+Die HTML-Seiten sind bewusst schlicht, ohne CSS und Ajax. Cocktail-MVC mit
+SQLite und Session-Login sowie die REST-API mit Swagger sind als Aufgaben
+vorbereitet. Ein JavaScript-Client und das Security Lab gehören nicht zu diesem Stand.
 
 ## Branches und Aufgaben
 
@@ -256,3 +256,49 @@ Alle übrigen Aufgabenmethoden sind noch TODOs. Nach der Implementierung lässt
 sich die Session-Trennung mit zwei unabhängigen Browser-Sitzungen beobachten.
 Es wird kein REST-Warenkorb vorbereitet; JWT und JavaScript-Client sind spätere
 Themen.
+
+## REST-Aufgabe mit Swagger
+
+`CocktailWebApplication` starten. Swagger UI liegt unter `/swagger-ui/index.html`
+(auch über `/swagger-ui.html` erreichbar), der generierte Vertrag unter
+`/v3/api-docs`. Das MVC-Menü enthält einen Link. Eingebunden ist
+`springdoc-openapi-starter-webmvc-ui` in Version 3.2.1 für Spring Boot 4.2.
+
+`RecipesRestController` ist vorbereitet. Die acht Aufgabenmethoden unter `/api`
+enthalten TODOs und werfen zunächst `UnsupportedOperationException`. Die Aufgabe
+besteht darin, die vorhandenen Services aufzurufen und deren DTOs direkt als JSON
+zurückzugeben. Keine Templates und keine Redirects verwenden. Swagger dokumentiert
+die Zielantworten; die Beispielwerte werden nicht als echte Antwort vorgetäuscht.
+
+| Methode | Pfad | Aufgabe |
+| --- | --- | --- |
+| GET | `/api/cocktails` | Alle Cocktails als Kurzansicht |
+| GET | `/api/cocktails/{id}` | Vollständiges Rezept |
+| GET | `/api/cocktails/search?query=Milch` | Suche über Cocktail- und Zutatennamen |
+| GET | `/api/ingredients` | Zutatenliste |
+| GET | `/api/ingredients/{id}` | Zutat mit ihren Cocktails |
+| GET | `/api/fridge/ingredients` | Eigener Zutatenbestand |
+| PATCH | `/api/fridge/ingredients/{id}` | `{ "inFridge": true }` bzw. false; Erfolg mit 204 ohne Body |
+| GET | `/api/fridge/possible` | Mit dem eigenen Bestand mögliche Cocktails |
+
+Die OpenAPI-Annotationen beschreiben Parameter, Statuscodes und JSON-Strukturen.
+`RecipesApiExamples` enthält Dokumentationsbeispiele direkt aus `cocktails.db`:
+Milkshake hat ID 24, Milch die Zutaten-ID 29. Das vollständige Beispielrezept
+enthält Erdbeeren (27), Vanilleeis (30), Barsirup Erdbeere (13, 2 cl) und Milch
+(29, 15 cl). Listen-Auszüge sind in Swagger als solche gekennzeichnet. Die Suche
+nach Milch und die Zutat Milch sind mit ihren vollständigen Treffern dokumentiert.
+
+JWT ist weiterhin eine spätere Aufgabe. Vorläufig verwendet der Kühlschrank den
+bestehenden Session-Login. Die Zugriffsregeln und CSRF-Konfiguration sind vorgegeben:
+
+1. In einem zweiten Tab über `/login` mit test/test oder demo/demo anmelden.
+2. Zu Swagger zurückkehren; der Browser sendet das Session-Cookie automatisch.
+3. Den bereits implementierten Hilfsendpunkt `GET /api/session` ausführen. Er lädt
+   den CSRF-Cookie und zeigt den Anmeldestatus an.
+4. Bei PATCH sendet Swagger den CSRF-Cookie automatisch als Header `X-XSRF-TOKEN`.
+   Nach Login/Logout Schritt 3 wiederholen.
+
+Unangemeldete Kühlschrank-Aufrufe liefern 401 statt einer HTML-Weiterleitung.
+Der MVC-Login und dessen CSRF-Schutz bleiben erhalten. Es gibt keine JWT-Ausstellung
+und keinen REST-Warenkorb. Die vollständigen fachlichen Services stehen auf
+`solution`; nach Übernahme der Vorbereitung kann der REST-Controller darauf aufbauen.
